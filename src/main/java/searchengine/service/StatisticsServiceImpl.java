@@ -1,6 +1,7 @@
 package searchengine.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import searchengine.config.Site;
 import searchengine.config.SitesList;
@@ -8,16 +9,30 @@ import searchengine.dto.DetailedStatisticsItem;
 import searchengine.dto.StatisticsData;
 import searchengine.dto.StatisticsResponse;
 import searchengine.dto.TotalStatistics;
+import searchengine.repository.LemmaRepository;
+import searchengine.repository.PageRepository;
+import searchengine.repository.SiteRepository;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class StatisticsServiceImpl implements StatisticsService {
 
     private final Random random = new Random();
+
     private final SitesList sites;
+
+    private final IndexingService indexingService;
+
+    private final SiteRepository siteRepository;
+
+    private final LemmaRepository lemmaRepository;
+
+    private final PageRepository pageRepository;
 
     @Override
     public StatisticsResponse getStatistics() {
