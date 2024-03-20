@@ -1,4 +1,4 @@
-package searchengine.model.enums;
+package searchengine.model;
 
 import lombok.Data;
 import searchengine.model.Lemma;

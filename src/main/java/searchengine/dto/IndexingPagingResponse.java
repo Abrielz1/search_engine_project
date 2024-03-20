@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class DetailedStatisticsItem {
+public class IndexingPagingResponse {
 
     private String url;
 
@@ -21,4 +21,3 @@ public class DetailedStatisticsItem {
 
     private Integer lemmas;
 }
-
