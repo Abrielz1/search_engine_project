@@ -1,0 +1,15 @@
+package searchengine.dto;
+
+import lombok.Data;
+
+@Data
+public class TotalStatistics {
+
+    private Integer sites;
+
+    private Integer pages;
+
+    private Integer lemmas;
+
+    private boolean indexing;
+}
