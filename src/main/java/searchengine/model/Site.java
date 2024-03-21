@@ -12,6 +12,7 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
+import java.time.LocalDateTime;
 import java.util.Date;
 
 @Data
@@ -27,9 +28,8 @@ public class Site {
     @Enumerated(value = EnumType.STRING)
     private SiteStatus status;
 
-    @Column(name = "status_time", nullable = false)
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date statusTime;
+    @Column(columnDefinition = "TIMESTAMP",name = "status_time", nullable = false)
+    private LocalDateTime dateTime;
 
     @Column(name = "last_error", columnDefinition = "TEXT")
     private String lastError;
