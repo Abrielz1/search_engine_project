@@ -1,8 +1,6 @@
 package searchengine.model;
 
 import lombok.Data;
-import searchengine.model.Site;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -23,7 +21,7 @@ public class Lemma {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "site_id", referencedColumnName = "id")
+    @JoinColumn(name = "site_id")
     private Site site;
 
     @Column(nullable = false, columnDefinition = "VARCHAR(255)")

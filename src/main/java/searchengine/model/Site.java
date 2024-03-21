@@ -12,7 +12,7 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
-import java.time.LocalDateTime;
+import java.util.Date;
 
 @Data
 @Entity
@@ -23,13 +23,13 @@ public class Site {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(columnDefinition = "ENUM('INDEXING', 'INDEXED', 'FAILED')", nullable = false)
-    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, name = "status")
+    @Enumerated(value = EnumType.STRING)
     private SiteStatus status;
 
-    @Column(name = "status_time", columnDefinition = "DATETIME", nullable = false)
+    @Column(name = "status_time", nullable = false)
     @Temporal(TemporalType.TIMESTAMP)
-    private LocalDateTime statusTime;
+    private Date statusTime;
 
     @Column(name = "last_error", columnDefinition = "TEXT")
     private String lastError;
