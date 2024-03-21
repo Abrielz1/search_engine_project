@@ -10,10 +10,10 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
-
+import javax.persistence.Index;
 @Data
 @Entity
-@Table(name = "page")
+@Table(name = "page", indexes = @Index(name = "path_index", columnList = "path"))
 public class Page {
 
     @Id
@@ -25,7 +25,7 @@ public class Page {
     private Site site;
 
     @Column(nullable = false, columnDefinition = "VARCHAR(255)")
-    @org.hibernate.annotations.Index(name = "path_index")
+   // @org.hibernate.annotations.Index(name = "path_index")
     private String path;
 
 
