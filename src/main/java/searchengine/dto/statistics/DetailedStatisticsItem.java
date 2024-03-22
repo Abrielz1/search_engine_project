@@ -13,12 +13,12 @@ public class DetailedStatisticsItem {
 
     private String status;
 
-    private Long statusTime;
+    private long statusTime;
 
     private String error;
 
-    private Integer pages;
+    private int pages;
 
-    private Integer lemmas;
+    private int lemmas;
 }
 
