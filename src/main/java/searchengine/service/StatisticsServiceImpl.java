@@ -13,7 +13,6 @@ import searchengine.dto.statistics.TotalStatistics;
 import searchengine.repository.LemmaRepository;
 import searchengine.repository.PageRepository;
 import searchengine.repository.SiteRepository;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
