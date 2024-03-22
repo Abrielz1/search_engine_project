@@ -11,11 +11,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import searchengine.dto.StatisticsResponse;
+import searchengine.dto.statistics.StatisticsResponse;
 import searchengine.service.StatisticsService;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,9 +35,9 @@ public class ApiController {
 
     @GetMapping("/startIndexing")
     @ResponseStatus(HttpStatus.OK)
-    public Boolean startIndexing() {
+    public StatisticsResponse startIndexing() {
 
-        return false;
+        return null;
     }
 
     @GetMapping("/stopIndexing")

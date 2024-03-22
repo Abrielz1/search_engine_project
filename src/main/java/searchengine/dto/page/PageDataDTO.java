@@ -1,9 +1,9 @@
-package searchengine.dto;
+package searchengine.dto.page;
 
 import lombok.Data;
 
 @Data
-public class PageData {
+public class PageDataDTO {
 
     private String site;
 
@@ -15,5 +15,5 @@ public class PageData {
 
     private String snippet;
 
-    private Double relevance;
+    private Float relevance;
 }

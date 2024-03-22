@@ -1,13 +1,13 @@
-package searchengine.dto;
+package searchengine.dto.statistics;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class IndexingStaringResponse {
+public class StatisticsResponse {
 
     private boolean result;
 
-    private String error;
+    private StatisticsData statistics;
 }

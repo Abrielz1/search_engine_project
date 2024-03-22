@@ -1,18 +1,13 @@
-package searchengine.dto;
+package searchengine.dto.indexing;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
-import java.util.List;
 
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class SearchResponseDTO {
+public class IndexingStaringResponseDTO {
 
     private boolean result;
-
-    private Integer count;
-
-    private List<PageData> data;
 
     private String error;
 }
