@@ -30,7 +30,7 @@ public class ApiController {
     private final StatisticsService statisticsService;
 
     @GetMapping("/statistics")
-    @ResponseStatus
+    @ResponseStatus(HttpStatus.OK)
     public StatisticsResponse statistics() {
 
         return statisticsService.getStatistics();
