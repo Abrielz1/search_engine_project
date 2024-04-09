@@ -21,7 +21,7 @@ import java.util.Random;
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
-public class StatisticsServiceImpl implements StatisticsService {
+public class  StatisticsServiceImpl implements StatisticsService {
 
     private final Random random = new Random();
 

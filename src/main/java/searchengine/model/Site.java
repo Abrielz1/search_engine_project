@@ -32,7 +32,7 @@ public class Site {
     @Enumerated(value = EnumType.STRING)
     private SiteStatus status;
 
-    @Column(columnDefinition = "TIMESTAMP",name = "status_time", nullable = false)
+    @Column(columnDefinition = "TIMESTAMP", name = "status_time", nullable = false)
     private LocalDateTime dateTime;
 
     @Column(name = "last_error", columnDefinition = "TEXT")

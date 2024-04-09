@@ -35,7 +35,6 @@ public class Page {
     @Column(nullable = false, columnDefinition = "VARCHAR(255)")
     private String path;
 
-
     @Column(nullable = false)
     private Integer code;
 
