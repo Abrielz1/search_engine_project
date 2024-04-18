@@ -3,12 +3,18 @@ package searchengine.util;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.springframework.stereotype.Component;
 import searchengine.config.SitesList;
+import searchengine.model.Page;
 import searchengine.model.Site;
 import searchengine.repository.PageRepository;
 import searchengine.repository.SiteRepository;
 
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -44,7 +50,6 @@ public class SiteScrubber {
     private final int maxDepth = 10;
 
     int depth = 0;
-
 
     private Set<URL> markedPages = new HashSet<>();
 
@@ -89,19 +94,22 @@ public class SiteScrubber {
         protected Void compute() {
 
             List<Scrubber> tasks = new ArrayList<>();
-            List<URL> site = extractLinks(page);
 
             scanningIsStopped = false;
             queueToScan.offer(startUrl);
 
             while (!queueToScan.isEmpty() || maxDepth <= depth || scanningIsStopped) {
 
-                Scrubber task = new Scrubber(page, site);
+                Scrubber task = new Scrubber(queueToScan.poll(), site);
                 tasks.add(task);
                 task.fork();
 
+                for (Scrubber t : tasks) {
+                    t.join();
+                }
+
                 while (!queueToScan.isEmpty()) {
-                    task.join();
+
 
                     try {
                         Thread.sleep(2000);
@@ -126,10 +134,66 @@ public class SiteScrubber {
         }
     }
 
-    private List<URL> extractLinks(URL page) {
+    private void extractLinks(URL pageUrl) {
+
+        if (scanningIsStopped) {
+            return;
+        }
 
         List<URL> result = new ArrayList<>();
+        String content;
+        try {
+           content = siteAccessController.accessSite(pageUrl);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
-        return result;
+        if (content == null) {
+            return;
+        }
+
+        Page page = new Page();
+        page.setSite(site);
+        page.setPath(pageUrl.getPath());
+        page.setCode(200);
+        page.setContent(content);
+
+        Document document = Jsoup.parse(content);
+        System.gc();
+        Elements elements = document.select("a[href]");
+
+        for (Element e: elements) {
+            String link = e.attr("href");
+
+            if (link.contains("#") || link.endsWith("pdf") || link.endsWith("jpg") || link.endsWith("png")) {
+                continue;
+            }
+
+            if (link.endsWith("/")) {
+                link = link.substring(0, link.length() - 1);
+            }
+
+            URL absoluteURL;
+            try {
+                absoluteURL = new URL(link);
+            } catch (MalformedURLException ex) {
+                continue;
+            }
+
+            if (!absoluteURL.equals(pageUrl.getHost())) {
+                continue;
+            }
+
+            synchronized (markedPages) {
+                if (markedPages.contains(absoluteURL)) {
+                    continue;
+                }
+                markedPages.add(absoluteURL);
+            }
+
+            queueToWrite.add(absoluteURL);
+        }
     }
 }
