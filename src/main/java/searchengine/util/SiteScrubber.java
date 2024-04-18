@@ -59,12 +59,15 @@ public class SiteScrubber {
 
     public void scan(List<String> urls) {
 
+
+
         for (String url : urls) {
+
         List<URL> list = new ArrayList<>();
             ForkJoinPool forkJoinPool  = new ForkJoinPool();;
             try {
-
-                Scrubber scrubber = new Scrubber(new URL(url), list);
+                startUrl = new URL(url);
+                Scrubber scrubber = new Scrubber(startUrl, list);
                 forkJoinPool.invoke(scrubber);
 
             } catch (MalformedURLException e) {
@@ -182,7 +185,7 @@ public class SiteScrubber {
                 continue;
             }
 
-            if (!absoluteURL.equals(pageUrl.getHost())) {
+            if (!absoluteURL.equals(startUrl.getHost())) {
                 continue;
             }
 
