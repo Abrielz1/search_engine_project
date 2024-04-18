@@ -42,8 +42,8 @@ public class ApiController {
     @GetMapping("/startIndexing")
     @ResponseStatus(HttpStatus.OK)
     public IndexingStaringResponseDTO startIndexing() {
-        IndexingStaringResponseDTO response = indexingService.getStartResponse();
-        return null;
+
+        return indexingService.getStartResponse();
     }
 
     @GetMapping("/stopIndexing")

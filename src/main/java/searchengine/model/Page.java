@@ -1,6 +1,8 @@
 package searchengine.model;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.proxy.HibernateProxy;
@@ -21,6 +23,8 @@ import java.util.Objects;
 @Setter
 @Entity
 @ToString
+@AllArgsConstructor
+@NoArgsConstructor
 public class Page {
 
     @Id
@@ -38,7 +42,7 @@ public class Page {
     @Column(nullable = false)
     private Integer code;
 
-    @Column(nullable = false)
+    @Column(columnDefinition = "TEXT", nullable = false)
     private String content;
 
     @Override

@@ -10,20 +10,24 @@ import java.util.Scanner;
 import java.util.concurrent.Semaphore;
 
 @Slf4j
+
 public class SiteAccessController {
 
     private final PageRepository pageRepository;
 
     private final Semaphore semaphore;
 
-    private Site site;
+    private final Site site;
 
     public SiteAccessController(Site site, PageRepository pageRepository) {
         this.semaphore = new Semaphore(1, true);
         this.pageRepository = pageRepository;
+        this.site = site;
     }
 
+
     public String accessSite(URL url) throws InterruptedException, IOException {
+
         if (url == null) {
             return null;
         }
