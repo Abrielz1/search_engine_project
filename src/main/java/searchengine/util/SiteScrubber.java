@@ -59,8 +59,6 @@ public class SiteScrubber {
 
     public void scan(List<String> urls) {
 
-
-
         for (String url : urls) {
 
         List<URL> list = new ArrayList<>();
@@ -76,9 +74,6 @@ public class SiteScrubber {
                 forkJoinPool.shutdown();
             }
         }
-
-
-
     }
 
     @RequiredArgsConstructor
