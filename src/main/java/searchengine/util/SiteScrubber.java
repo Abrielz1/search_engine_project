@@ -63,21 +63,41 @@ public class SiteScrubber {
 
     public void scan(List<String> urls) {
 
-        for (String url : urls) {
 
         List<URL> list = new ArrayList<>();
-            ForkJoinPool forkJoinPool  = new ForkJoinPool();;
+
+        for (String url : urls) {
             try {
                 startUrl = new URL(url);
-                Scrubber scrubber = new Scrubber(startUrl, list);
-                forkJoinPool.invoke(scrubber);
-
+                list.add(startUrl);
             } catch (MalformedURLException e) {
                 throw new RuntimeException(e);
-            } finally {
-                forkJoinPool.shutdown();
             }
+
         }
+
+            ForkJoinPool pool  = new ForkJoinPool();;
+            ArrayList<Thread> threads = new ArrayList<>();
+
+        for (URL site : list) {
+            threads.add(new Thread(() -> {
+                pool.invoke(new Scrubber(site, list));
+
+            }));
+        }
+        threads.forEach(Thread::start);
+
+//            try {
+//                startUrl = new URL(url);
+//                Scrubber scrubber = new Scrubber(startUrl, list);
+//                forkJoinPool.invoke(scrubber);
+//
+//            } catch (MalformedURLException e) {
+//                throw new RuntimeException(e);
+//            } finally {
+//                forkJoinPool.shutdown();
+//            }
+
     }
 
     @RequiredArgsConstructor
@@ -112,7 +132,6 @@ public class SiteScrubber {
                 }
 
                 while (!queueToScan.isEmpty()) {
-
 
                     try {
                         Thread.sleep(2000);
@@ -196,6 +215,8 @@ public class SiteScrubber {
             }
 
             queueToWrite.add(absoluteURL);
+
+            pageRepository.save(page);
         }
     }
 }
