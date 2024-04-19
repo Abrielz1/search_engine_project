@@ -101,9 +101,9 @@ public class SiteScrubber {
             queueToScan.offer(startUrl);
 
             while (!queueToScan.isEmpty() || maxDepth <= depth || scanningIsStopped) {
-
-                Scrubber task = new Scrubber(queueToScan.poll(), site);
                 extractLinks(queueToScan.poll());
+                Scrubber task = new Scrubber(queueToScan.poll(), site);
+
                 tasks.add(task);
                 task.fork();
 
