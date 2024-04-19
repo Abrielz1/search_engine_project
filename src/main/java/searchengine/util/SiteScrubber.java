@@ -8,12 +8,10 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.stereotype.Component;
-import searchengine.config.SitesList;
 import searchengine.model.Page;
 import searchengine.model.Site;
 import searchengine.repository.PageRepository;
 import searchengine.repository.SiteRepository;
-
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -28,7 +26,6 @@ import java.util.concurrent.RecursiveTask;
 @Slf4j
 @Getter
 @Component
-@RequiredArgsConstructor
 public class SiteScrubber {
 
     private static boolean scanningIsStopped = false;
@@ -39,9 +36,9 @@ public class SiteScrubber {
 
     private final PageRepository pageRepository;
 
-    private URL page;
-
     private final Set<String> setSitesList;
+
+    private URL page;
 
     private Site site; //?
 
@@ -56,6 +53,13 @@ public class SiteScrubber {
     private ConcurrentLinkedQueue<URL> queueToWrite = new ConcurrentLinkedQueue<>();
 
     private ConcurrentLinkedQueue<URL> queueToScan = new ConcurrentLinkedQueue<>();
+
+    public SiteScrubber(SiteRepository siteRepository, PageRepository pageRepository, Set<String> setSitesList) {
+        this.siteAccessController = new SiteAccessController(site, pageRepository);
+        this.siteRepository = siteRepository;
+        this.pageRepository = pageRepository;
+        this.setSitesList = setSitesList;
+    }
 
     public void scan(List<String> urls) {
 
@@ -99,6 +103,7 @@ public class SiteScrubber {
             while (!queueToScan.isEmpty() || maxDepth <= depth || scanningIsStopped) {
 
                 Scrubber task = new Scrubber(queueToScan.poll(), site);
+                extractLinks(queueToScan.poll());
                 tasks.add(task);
                 task.fork();
 
@@ -138,7 +143,6 @@ public class SiteScrubber {
             return;
         }
 
-        List<URL> result = new ArrayList<>();
         String content;
         try {
            content = siteAccessController.accessSite(pageUrl);

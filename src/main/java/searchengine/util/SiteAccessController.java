@@ -10,7 +10,6 @@ import java.util.Scanner;
 import java.util.concurrent.Semaphore;
 
 @Slf4j
-
 public class SiteAccessController {
 
     private final PageRepository pageRepository;
