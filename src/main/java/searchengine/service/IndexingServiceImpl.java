@@ -2,78 +2,126 @@ package searchengine.service;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 import org.springframework.stereotype.Service;
+import searchengine.config.JsoupSettings;
+import searchengine.config.SiteConfig;
 import searchengine.config.SitesList;
 import searchengine.dto.indexing.IndexingStaringResponseDTO;
 import searchengine.model.Site;
-import searchengine.model.enums.SiteStatus;
 import searchengine.repository.IndexRepository;
-import org.springframework.transaction.annotation.Transactional;
+import searchengine.repository.LemmaRepository;
 import searchengine.repository.PageRepository;
 import searchengine.repository.SiteRepository;
-import searchengine.util.ScanTask;
-import searchengine.util.SiteAccessController;
-import searchengine.util.SiteScrubber;
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.time.LocalDate;
+import searchengine.service.util.SiteScrubber;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
+import java.util.Optional;
 import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.RecursiveTask;
+import static searchengine.model.enums.SiteStatus.FAILED;
+import static searchengine.model.enums.SiteStatus.INDEXED;
 
 @Slf4j
-@Service
 @Getter
+@Setter
+@Service
 @RequiredArgsConstructor
 public class IndexingServiceImpl implements IndexingService {
 
     private boolean indexingInProcess = false;
 
-    private final SiteScrubber scanTask;
+    private final JsoupSettings settings;
 
-    private ArrayList<Site> sitesM;
+    private ForkJoinPool pool;
 
-    private final SitesList sites;
+    private final SitesList sitesList;
 
     private final SiteRepository siteRepository;
 
     private final PageRepository pageRepository;
 
+    private final IndexRepository indexRepository;
+
+    private final LemmaRepository lemmaRepository;
+
     @Override
     public IndexingStaringResponseDTO getStartResponse() {
-
-        IndexingStaringResponseDTO responseDTO = new IndexingStaringResponseDTO();
-        responseDTO.setResult(indexingInProcess);
-        responseDTO.setError(indexingInProcess ? "Индексация уже запущена": null);
-
-        if (!indexingInProcess) {
-            indexingInProcess = true;
-            this.startIndexing();
+        IndexingStaringResponseDTO response = new IndexingStaringResponseDTO();
+        if (!isIndexing()) {
+            response.setResult(true);
+            this.beginIndexingSites();
+        } else {
+            response.setError("Индексация уже запущена");
+            response.setResult(false);
         }
 
-        return responseDTO;
+        return response;
     }
 
-    public void startIndexing() {
+    public void beginIndexingSites() {
+        SiteScrubber.isStopped = false;
+        this.clearDB();
+        this.siteSaver();
+        pool = new ForkJoinPool();
+        List<Thread> threads = new ArrayList<>();
+        List<Site> siteList = siteRepository.findAll();
 
-        sitesM = new ArrayList<>();
+        for (Site site : siteList) {
+            threads.add(new Thread(() -> {
+                pool.invoke(new SiteScrubber(site,
+                        "",
+                        settings,
+                        siteRepository,
+                        pageRepository));
 
-        List<String> siteUrls = sites.getSites().stream()
-                .map(searchengine.config.Site::getUrl)
-                .toList();
+                this.setSitesIndexedStatus(site);
+            }));
+        }
+        threads.forEach(Thread::start);
+    }
 
-        scanTask.scan(siteUrls);
+    private void setSitesIndexedStatus(Site site) {
+        if (SiteScrubber.isStopped) {
+            return;
+        }
+
+        Optional<Site> siteFromDB = siteRepository.findFirstByUrl(site.getUrl());
+        if (siteFromDB.isPresent() && !siteFromDB.get().getStatus().equals(FAILED)) {
+            siteFromDB.get().setStatus(INDEXED);
+            siteFromDB.get().setStatusTime(LocalDateTime.now());
+            siteFromDB.get().setLastError(null);
+            siteRepository.saveAndFlush(siteFromDB.get());
+        }
+    }
+
+    private boolean isIndexing() {
+        if (pool == null) {
+            return false;
+        }
+        return !pool.isQuiescent();
+    }
+
+    private void clearDB() {
+        indexRepository.deleteAllInBatch();
+        lemmaRepository.deleteAllInBatch();
+        pageRepository.deleteAllInBatch();
+        siteRepository.deleteAllInBatch();
+    }
+
+    private void siteSaver() {
+        List<Site> sites = new ArrayList<>();
+        for (SiteConfig site : sitesList.getSites()) {
+            Site siteToSave = new Site();
+            siteToSave.setUrl(site.getUrl());
+            siteToSave.setName(site.getName());
+            siteToSave.setStatus(INDEXED);
+            siteToSave.setLastError(null);
+            siteToSave.setStatusTime(LocalDateTime.now());
+            sites.add(siteToSave);
+        }
+        siteRepository.saveAllAndFlush(sites);
     }
 }
 
