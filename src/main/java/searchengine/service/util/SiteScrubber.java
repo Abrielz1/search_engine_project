@@ -63,14 +63,14 @@ public class SiteScrubber extends RecursiveAction {
         Document document;
         try {
             document = siteController.accessSite(site.getUrl().concat(path));
-            this.siteAndPAgeSaverToDb(document);
+            this.siteAndPageSaverToDb(document);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
         return document;
     }
 
-    private void siteAndPAgeSaverToDb(Document document) {
+    private void siteAndPageSaverToDb(Document document) {
 
         Site siteInDb = siteChecker(site.getUrl());
         siteInDb.setLastError(null);
@@ -119,7 +119,7 @@ public class SiteScrubber extends RecursiveAction {
             return false;
         }
 
-        return url.matches("[\\w\\W]+(\\.pdf|\\.PDF|\\.doc|\\.DOC" +
+        return !url.matches("[\\w\\W]+(\\.pdf|\\.PDF|\\.doc|\\.DOC" +
                 "|\\.png|\\.PNG|\\.jpe?g|\\.JPE?G|\\.JPG|\\.Gif|\\.gif" +
                 "|\\.php[\\W\\w]|#[\\w\\W]*|\\?[\\w\\W]+)$");
     }
