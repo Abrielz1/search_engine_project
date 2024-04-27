@@ -19,6 +19,7 @@ public class SiteController {
         if (url == null) {
             return null;
         }
+
         Document pageContent = Jsoup.connect(url)
                 .userAgent(settings.getUserAgent())
                 .referrer(settings.getReferrer())
@@ -27,9 +28,7 @@ public class SiteController {
                 .followRedirects(false)
                 .timeout(10_000).get();
         try {
-
         Thread.sleep(500);
-
         } catch (InterruptedException e ) {
             e.printStackTrace();
         }

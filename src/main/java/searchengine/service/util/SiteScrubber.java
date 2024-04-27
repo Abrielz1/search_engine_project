@@ -115,15 +115,13 @@ public class SiteScrubber extends RecursiveAction {
     }
 
     private boolean isPathCorrect(String url) {
-        if (url.startsWith(site.getUrl())) {
+        if (!url.startsWith(site.getUrl())) {
             return false;
         }
 
-        String urlMatcher = "[\\w\\W]+(\\.pdf|\\.PDF|\\.doc|\\.DOC" +
+        return url.matches("[\\w\\W]+(\\.pdf|\\.PDF|\\.doc|\\.DOC" +
                 "|\\.png|\\.PNG|\\.jpe?g|\\.JPE?G|\\.JPG|\\.Gif|\\.gif" +
-                "|\\.php[\\W\\w]|#[\\w\\W]*|\\?[\\w\\W]+)$";
-
-        return url.matches(urlMatcher);
+                "|\\.php[\\W\\w]|#[\\w\\W]*|\\?[\\w\\W]+)$");
     }
 
     private SiteScrubber createSiteScrubberThread(String url) {
