@@ -5,4 +5,6 @@ import searchengine.dto.indexing.IndexingStaringResponseDTO;
 public interface IndexingService {
 
     IndexingStaringResponseDTO getStartResponse();
+
+    IndexingStaringResponseDTO stopIndexingResponse();
 }

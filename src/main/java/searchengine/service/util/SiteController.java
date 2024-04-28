@@ -37,7 +37,7 @@ public class SiteController {
                 .followRedirects(false)
                 .timeout(10_000).get();
         try {
-        Thread.sleep(700);
+        Thread.sleep(1000);
         } catch (InterruptedException exception) {
             exception.printStackTrace();
             this.setFailedStatus(url, exception);

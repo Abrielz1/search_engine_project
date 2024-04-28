@@ -48,7 +48,9 @@ public class IndexingServiceImpl implements IndexingService {
 
     @Override
     public IndexingStaringResponseDTO getStartResponse() {
+
         IndexingStaringResponseDTO response = new IndexingStaringResponseDTO();
+
         if (!isIndexing()) {
             response.setResult(true);
             this.beginIndexingSites();
@@ -60,7 +62,19 @@ public class IndexingServiceImpl implements IndexingService {
         return response;
     }
 
-    public void beginIndexingSites() {
+    @Override
+    public IndexingStaringResponseDTO stopIndexingResponse() {
+
+        this.stopIndexingSites();
+
+        IndexingStaringResponseDTO response = new IndexingStaringResponseDTO();
+        response.setResult(false);
+        response.setError("Индексация не запущена");
+
+        return response;
+    }
+
+    private void beginIndexingSites() {
         SiteScrubber.isStopped = false;
         this.clearDB();
         this.siteSaver();
@@ -122,6 +136,29 @@ public class IndexingServiceImpl implements IndexingService {
             sites.add(siteToSave);
         }
         siteRepository.saveAllAndFlush(sites);
+    }
+
+    private void stopIndexingSites() {
+        if (!isIndexing()) {
+            return;
+        }
+
+        SiteScrubber.isStopped = true;
+        pool.shutdown();
+        this.setFailedSate();
+        log.info("индексайия остановлена!");
+    }
+
+    private void setFailedSate() {
+        List<Site> sitesList = siteRepository.findAll();
+        sitesList.forEach(site -> {
+            site.setStatus(FAILED);
+            site.setStatusTime(LocalDateTime.now());
+            site.setLastError("Индексация остановлена пользователем");
+        });
+
+        log.info("Список сайтов не прошедших индексацию сохранён!");
+        siteRepository.saveAllAndFlush(sitesList);
     }
 }
 
