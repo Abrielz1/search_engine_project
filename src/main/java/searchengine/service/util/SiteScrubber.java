@@ -28,11 +28,16 @@ public class SiteScrubber extends RecursiveAction {
 
     private final JsoupSettings settings;
 
-    public SiteScrubber(Site site, String path, JsoupSettings settings, SiteRepository siteRepository, PageRepository pageRepository) {
+    public SiteScrubber(Site site,
+                        String path,
+                        JsoupSettings settings,
+                        SiteRepository siteRepository,
+                        PageRepository pageRepository) {
+
         this.site = site;
         this.path = path;
         this.settings = settings;
-        this.siteController = new SiteController(settings);
+        this.siteController = new SiteController(siteRepository, settings);
         this.siteRepository = siteRepository;
         this.pageRepository = pageRepository;
     }
@@ -85,8 +90,11 @@ public class SiteScrubber extends RecursiveAction {
     }
 
     private Site siteChecker(String url) {
-        return siteRepository.findFirstByUrl(url).orElseThrow(() ->
-                new ObjectNotFoundException("Такого сайта нет!"));
+        return siteRepository.findFirstByUrl(url).orElseThrow(() -> {
+
+            log.error("сайта нет!");
+            return new ObjectNotFoundException("сайта нет!");
+        });
     }
 
     private Page createPage(Document document, Site site, String path) {
@@ -101,13 +109,14 @@ public class SiteScrubber extends RecursiveAction {
 
     private synchronized Page checkerPageInDb(Document document) {
 
+        log.error("стрвницы нет!");
           return pageRepository.findFirstByPathAndSite(this.urlChecker(path), site).orElseGet(()
                     -> createPage(document, site, path));
     }
 
     private Set<String> getUrls(Document document) {
-        Elements urlElement = document.select("a[href]");
 
+        Elements urlElement = document.select("a[href]");
         return urlElement.stream()
                 .map(url -> url.absUrl("href"))
                 .filter(this::isPathCorrect)
