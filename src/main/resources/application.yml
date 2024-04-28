@@ -21,8 +21,10 @@ indexing-settings:
   sites:
 #    - url: https://www.lenta.ru
 #      name: Лента.ру
-    - url: https://skillbox.ru
-      name: News
+    - url: https://volochek.life/
+      name: Volochek
+    - url: https://www.svetlovka.ru/
+      name: Svetlovka
 #    - url: https://www.playback.ru
 #      name: PlayBack.Ru
 

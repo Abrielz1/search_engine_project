@@ -50,7 +50,7 @@ public class ApiController {
     @ResponseStatus(HttpStatus.OK)
     public IndexingStoppingResponseDTO stopIndexing() {
 
-        return null;
+        return indexingService.stopIndexingResponse();
     }
 
     @GetMapping("/search")

@@ -9,6 +9,7 @@ import searchengine.config.JsoupSettings;
 import searchengine.config.SiteConfig;
 import searchengine.config.SitesList;
 import searchengine.dto.indexing.IndexingStaringResponseDTO;
+import searchengine.dto.indexing.IndexingStoppingResponseDTO;
 import searchengine.model.Site;
 import searchengine.repository.IndexRepository;
 import searchengine.repository.LemmaRepository;
@@ -63,13 +64,18 @@ public class IndexingServiceImpl implements IndexingService {
     }
 
     @Override
-    public IndexingStaringResponseDTO stopIndexingResponse() {
+    public IndexingStoppingResponseDTO stopIndexingResponse() {
 
+        IndexingStoppingResponseDTO response = new IndexingStoppingResponseDTO();
         this.stopIndexingSites();
 
-        IndexingStaringResponseDTO response = new IndexingStaringResponseDTO();
-        response.setResult(false);
-        response.setError("Индексация не запущена");
+        if (SiteScrubber.isStopped) {
+            response.setResult(true);
+            return response;
+        } else if (!isIndexing()) {
+            response.setResult(false);
+            response.setError("Индексация не запущена");
+        }
 
         return response;
     }
@@ -110,10 +116,11 @@ public class IndexingServiceImpl implements IndexingService {
         }
     }
 
-    private boolean isIndexing() {
+    public boolean isIndexing() {
         if (pool == null) {
             return false;
         }
+
         return !pool.isQuiescent();
     }
 
@@ -146,19 +153,19 @@ public class IndexingServiceImpl implements IndexingService {
         SiteScrubber.isStopped = true;
         pool.shutdown();
         this.setFailedSate();
-        log.info("индексайия остановлена!");
+        log.info("Индексация остановлена!");
     }
 
     private void setFailedSate() {
         List<Site> sitesList = siteRepository.findAll();
-        sitesList.forEach(site -> {
-            site.setStatus(FAILED);
-            site.setStatusTime(LocalDateTime.now());
-            site.setLastError("Индексация остановлена пользователем");
-        });
+                sitesList.forEach(site -> {
+                    site.setStatus(FAILED);
+                    site.setStatusTime(LocalDateTime.now());
+                    site.setLastError("Индексация остановлена пользователем");
 
-        log.info("Список сайтов не прошедших индексацию сохранён!");
-        siteRepository.saveAllAndFlush(sitesList);
+                    log.info("Список сайтов не прошедших индексацию сохранён!");
+                    siteRepository.saveAllAndFlush(sitesList);
+                });
     }
 }
 
