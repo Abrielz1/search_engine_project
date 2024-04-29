@@ -60,6 +60,25 @@
                 </dependency>
 
         <dependency>
+            <groupId>org.apache.lucene.morphology</groupId>
+            <artifactId>dictionary-reader</artifactId>
+            <version>1.5</version>
+        </dependency>
+
+        <dependency>
+
+            <groupId>org.apache.lucene.morphology</groupId>
+            <artifactId>english</artifactId>
+            <version>1.5</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.lucene.morphology</groupId>
+            <artifactId>russian</artifactId>
+            <version>1.5</version>
+        </dependency>
+
+        <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-core</artifactId>
             <version>2.20.0</version>
