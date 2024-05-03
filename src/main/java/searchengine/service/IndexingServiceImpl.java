@@ -105,9 +105,14 @@ public class IndexingServiceImpl implements IndexingService {
                 response.setResult(false);
                 response.setError("Индексация не запущена");
             }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        } catch (IOException exception) {
+            exception.printStackTrace();
         }
+        response.setError("""
+                            Данная страница находится за пределами сайтов,
+                            указанных в конфигурационном файле
+                            """);
+
         return response;
     }
 
