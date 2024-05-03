@@ -286,7 +286,7 @@ public class IndexingServiceImpl implements IndexingService {
         }
     }
 
-    private Page checkPage(Document document, Site site, String path) {
+    private synchronized Page checkPage(Document document, Site site, String path) {
         log.error("стрвницы нет!");
         return pageRepository.findFirstByPathAndSite(this.urlVerification(path, site), site).orElseGet(()
                 -> this.createPage(document, site, path));
