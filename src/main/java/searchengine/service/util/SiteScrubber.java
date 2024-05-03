@@ -1,6 +1,7 @@
 package searchengine.service.util;
 
 import lombok.extern.slf4j.Slf4j;
+import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 import searchengine.config.JsoupSettings;
@@ -58,11 +59,13 @@ public class SiteScrubber extends RecursiveAction {
         Document document = this.documentGetter();
         Set<SiteScrubber> threadPool = ConcurrentHashMap.newKeySet();
         Set<String> setUrlsToScan = this.getUrls(document);
-        for (String url : setUrlsToScan) {
-            threadPool.add(this.createSiteScrubberThread(url));
+        for (String urlToScan : setUrlsToScan) {
+            threadPool.add(this.createSiteScrubberThread(urlToScan));
         }
+
         ForkJoinTask.invokeAll(threadPool);
     }
+
 
     private Document documentGetter() {
         Document document;
@@ -102,7 +105,7 @@ public class SiteScrubber extends RecursiveAction {
         newPage.setCode(document.connection().response().statusCode());
         newPage.setPath(this.urlChecker(path));
         newPage.setSite(site);
-        newPage.setContent(document.html());
+        newPage.setContent(this.siteHtmlTagsCleaner(document.html()));
 
         return newPage;
     }
@@ -110,8 +113,8 @@ public class SiteScrubber extends RecursiveAction {
     private synchronized Page checkerPageInDb(Document document) {
 
         log.error("стрвницы нет!");
-          return pageRepository.findFirstByPathAndSite(this.urlChecker(path), site).orElseGet(()
-                    -> createPage(document, site, path));
+        return pageRepository.findFirstByPathAndSite(this.urlChecker(path), site).orElseGet(()
+                -> createPage(document, site, path));
     }
 
     private Set<String> getUrls(Document document) {
@@ -129,7 +132,7 @@ public class SiteScrubber extends RecursiveAction {
         }
 
         return !url.matches("[\\w\\W]+(\\.pdf|\\.PDF|\\.doc|\\.DOC" +
-                "|\\.png|\\.PNG|\\.jpe?g|\\.JPE?G|\\.JPG|\\.Gif|\\.gif" +
+                "|\\.png|\\.PNG|\\.jpe?g|\\.JPE?G|\\.JPG|\\.GIF|\\.gif" +
                 "|\\.php[\\W\\w]|#[\\w\\W]*|\\?[\\w\\W]+)$");
     }
 
@@ -146,5 +149,9 @@ public class SiteScrubber extends RecursiveAction {
     private String urlChecker(String url) {
         return url.equals(site.getUrl()) ? "/"
                 : url.replace(site.getUrl(), "");
+    }
+
+    private String siteHtmlTagsCleaner(String html) {
+        return Jsoup.parse(html).text();
     }
 }

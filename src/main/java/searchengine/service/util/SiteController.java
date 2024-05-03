@@ -50,6 +50,7 @@ public class SiteController {
         finally {
             semaphore.release();
         }
+
         return pageContent;
     }
 

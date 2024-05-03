@@ -53,6 +53,13 @@ public class ApiController {
         return indexingService.stopIndexingResponse();
     }
 
+    @PostMapping("/indexPage")
+    @ResponseStatus(HttpStatus.CREATED)
+    public IndexingPagingResponseDTO indexPage(@RequestParam String url) {
+
+        return null;
+    }
+
     @GetMapping("/search")
     @ResponseStatus(HttpStatus.OK)
     public List<SearchResponseDTO> searchWord(
@@ -64,12 +71,5 @@ public class ApiController {
         PageRequest page = PageRequest.of(from / size, size);
 
         return new ArrayList<>();
-    }
-
-    @PostMapping("/indexPage")
-    @ResponseStatus(HttpStatus.CREATED)
-    public IndexingPagingResponseDTO indexPage(@RequestParam String url) {
-
-        return null;
     }
 }
