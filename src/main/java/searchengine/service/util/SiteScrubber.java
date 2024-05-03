@@ -67,7 +67,7 @@ public class SiteScrubber extends RecursiveAction {
     }
 
 
-    private Document documentGetter() {
+    public Document documentGetter() {
         Document document;
         try {
             document = siteController.accessSite(site.getUrl().concat(path));
@@ -88,15 +88,15 @@ public class SiteScrubber extends RecursiveAction {
         Page page = checkerPageInDb(document);
 
         if (page.getCode() < 220) {
-            pageRepository.saveAndFlush(page);
+            this.savePageInBd(page);
         }
     }
 
     private Site siteChecker(String url) {
         return siteRepository.findFirstByUrl(url).orElseThrow(() -> {
 
-            log.error("сайта нет!");
-            return new ObjectNotFoundException("сайта нет!");
+            log.error("По ссылке: %s сайта нет!".formatted(url));
+            return new ObjectNotFoundException("По ссылке: %s сайта нет!".formatted(url));
         });
     }
 
@@ -153,5 +153,9 @@ public class SiteScrubber extends RecursiveAction {
 
     private String siteHtmlTagsCleaner(String html) {
         return Jsoup.parse(html).text();
+    }
+
+    private synchronized void savePageInBd(Page page) {
+        pageRepository.saveAndFlush(page);
     }
 }
