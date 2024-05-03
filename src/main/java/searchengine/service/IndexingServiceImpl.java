@@ -22,14 +22,12 @@ import searchengine.repository.LemmaRepository;
 import searchengine.repository.PageRepository;
 import searchengine.repository.SiteRepository;
 import searchengine.service.util.SiteScrubber;
-
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ForkJoinPool;
-
 import static searchengine.model.enums.SiteStatus.FAILED;
 import static searchengine.model.enums.SiteStatus.INDEXED;
 
@@ -280,21 +278,21 @@ public class IndexingServiceImpl implements IndexingService {
 
     private synchronized Page checkPage(Document document, Site site, String path) {
         log.error("стрвницы нет!");
-        return pageRepository.findFirstByPathAndSite(this.urlChecker(path, site), site).orElseGet(()
+        return pageRepository.findFirstByPathAndSite(this.urlVerification(path, site), site).orElseGet(()
                 -> this.createPage(document, site, path));
     }
 
     private Page createPage(Document document, Site site, String path) {
         Page newPage = new Page();
         newPage.setCode(document.connection().response().statusCode());
-        newPage.setPath(this.urlChecker(path, site));
+        newPage.setPath(this.urlVerification(path, site));
         newPage.setSite(site);
         newPage.setContent(this.siteHtmlTagsCleaner(document.html()));
 
         return newPage;
     }
 
-    private String urlChecker(String url, Site site) {
+    private String urlVerification(String url, Site site) {
         return url.equals(site.getUrl()) ? "/"
                 : url.replace(site.getUrl(), "");
     }
