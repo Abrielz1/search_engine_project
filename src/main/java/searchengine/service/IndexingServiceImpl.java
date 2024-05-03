@@ -171,7 +171,7 @@ public class IndexingServiceImpl implements IndexingService {
         List<Site> sites = new ArrayList<>();
         for (SiteConfig site : sitesList.getSites()) {
             Site siteToSave = new Site();
-            siteToSave.setUrl(site.getUrl());
+            siteToSave.setUrl(this.removeLastDash(site.getUrl()));
             siteToSave.setName(site.getName());
             siteToSave.setStatus(INDEXED);
             siteToSave.setLastError(null);
@@ -179,6 +179,11 @@ public class IndexingServiceImpl implements IndexingService {
             sites.add(siteToSave);
         }
         siteRepository.saveAllAndFlush(sites);
+    }
+
+    private String removeLastDash(String url) {
+        return url.trim().endsWith("/") ?
+                url.substring(0, url.length() - 1) : url;
     }
 
     private void stopIndexingSites() {
