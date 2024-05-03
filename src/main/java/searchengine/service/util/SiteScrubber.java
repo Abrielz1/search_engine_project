@@ -110,7 +110,7 @@ public class SiteScrubber extends RecursiveAction {
         return newPage;
     }
 
-    private synchronized Page checkerPageInDb(Document document) {
+    private Page checkerPageInDb(Document document) {
 
         log.error("стрвницы нет!");
         return pageRepository.findFirstByPathAndSite(this.urlChecker(path), site).orElseGet(()
