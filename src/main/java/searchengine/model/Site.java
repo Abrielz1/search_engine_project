@@ -1,6 +1,8 @@
 package searchengine.model;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.proxy.HibernateProxy;
@@ -22,6 +24,8 @@ import java.util.Objects;
 @Getter
 @Setter
 @ToString
+@AllArgsConstructor
+@NoArgsConstructor
 public class Site {
 
     @Id
@@ -32,8 +36,8 @@ public class Site {
     @Enumerated(value = EnumType.STRING)
     private SiteStatus status;
 
-    @Column(columnDefinition = "TIMESTAMP",name = "status_time", nullable = false)
-    private LocalDateTime dateTime;
+    @Column(columnDefinition = "TIMESTAMP", name = "status_time", nullable = false)
+    private LocalDateTime statusTime;
 
     @Column(name = "last_error", columnDefinition = "TEXT")
     private String lastError;

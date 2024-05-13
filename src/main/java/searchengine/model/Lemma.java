@@ -1,6 +1,8 @@
 package searchengine.model;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.proxy.HibernateProxy;
@@ -20,6 +22,8 @@ import java.util.Objects;
 @Setter
 @Entity
 @ToString
+@AllArgsConstructor
+@NoArgsConstructor
 public class Lemma {
 
     @Id

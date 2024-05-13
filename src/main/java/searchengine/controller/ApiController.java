@@ -15,6 +15,7 @@ import searchengine.dto.indexing.IndexingStaringResponseDTO;
 import searchengine.dto.indexing.IndexingStoppingResponseDTO;
 import searchengine.dto.page.SearchResponseDTO;
 import searchengine.dto.statistics.StatisticsResponse;
+import searchengine.service.IndexingService;
 import searchengine.service.StatisticsService;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
@@ -29,6 +30,8 @@ public class ApiController {
 
     private final StatisticsService statisticsService;
 
+    private final IndexingService indexingService;
+
     @GetMapping("/statistics")
     @ResponseStatus(HttpStatus.OK)
     public StatisticsResponse statistics() {
@@ -40,14 +43,14 @@ public class ApiController {
     @ResponseStatus(HttpStatus.OK)
     public IndexingStaringResponseDTO startIndexing() {
 
-        return null;
+        return indexingService.getStartResponse();
     }
 
     @GetMapping("/stopIndexing")
     @ResponseStatus(HttpStatus.OK)
     public IndexingStoppingResponseDTO stopIndexing() {
 
-        return null;
+        return indexingService.stopIndexingResponse();
     }
 
     @GetMapping("/search")
@@ -56,7 +59,7 @@ public class ApiController {
                                    @RequestParam String query,
                                    @RequestParam(required = false) String site,
                                    @Positive @RequestParam(defaultValue = "0") Integer from,
-                                   @PositiveOrZero @RequestParam(defaultValue = "10") Integer size) {
+                                   @PositiveOrZero @RequestParam(defaultValue = "20") Integer size) {
 
         PageRequest page = PageRequest.of(from / size, size);
 

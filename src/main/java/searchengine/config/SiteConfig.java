@@ -3,7 +3,7 @@ package searchengine.config;
 import lombok.Data;
 
 @Data
-public class Site {
+public class SiteConfig {
 
     private String url;
 
