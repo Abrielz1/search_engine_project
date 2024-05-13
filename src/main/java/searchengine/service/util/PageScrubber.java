@@ -20,7 +20,7 @@ public class PageScrubber {
         try {
             Document document = Jsoup.connect(url).get();
             String tempUrl = url;
-            url = url.endsWith("/") ? tempUrl = manipulator.removeLastDash(url) : tempUrl;
+            tempUrl = url.endsWith("/") ? manipulator.removeLastDash(url) : tempUrl;
             Site siteFromDb = manipulator.siteChecker(tempUrl);
 
             if (siteFromDb != null) {
