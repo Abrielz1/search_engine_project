@@ -4,23 +4,20 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import searchengine.config.JsoupSettings;
-import searchengine.config.SiteConfig;
 import searchengine.config.SitesList;
 import searchengine.dto.indexing.IndexingPagingResponseDTO;
 import searchengine.dto.indexing.IndexingStaringResponseDTO;
 import searchengine.dto.indexing.IndexingStoppingResponseDTO;
-import searchengine.exception.exceptions.ObjectNotFoundException;
-import searchengine.model.Page;
 import searchengine.model.Site;
 import searchengine.repository.IndexRepository;
 import searchengine.repository.LemmaRepository;
 import searchengine.repository.PageRepository;
 import searchengine.repository.SiteRepository;
+import searchengine.service.util.EntityManipulator;
+import searchengine.service.util.PageScrubber;
 import searchengine.service.util.SiteScrubber;
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -53,6 +50,10 @@ public class IndexingServiceImpl implements IndexingService {
     private final IndexRepository indexRepository;
 
     private final LemmaRepository lemmaRepository;
+
+    private final PageScrubber pageScrubber;
+
+    private final EntityManipulator manipulator;
 
     @Override
     public IndexingStaringResponseDTO getStartResponse() {
@@ -98,9 +99,10 @@ public class IndexingServiceImpl implements IndexingService {
         }
 
         try {
-            if (this.urlChecker(url)) {
+            if (manipulator.urlChecker(url)) {
                 response.setResult(true);
-                new Thread(() -> this.siteScrubber(url)).start();
+              new  Thread(() -> pageScrubber.siteScrubber(url)).start();
+
             } else {
                 response.setResult(false);
                 response.setError("Индексация не запущена");
@@ -116,8 +118,8 @@ public class IndexingServiceImpl implements IndexingService {
 
     private void beginIndexingSites() {
         SiteScrubber.isStopped = false;
-        this.clearDB();
-        this.siteSaver();
+        manipulator.clearDB();
+        manipulator.siteSaver();
         pool = new ForkJoinPool();
         List<Thread> threads = new ArrayList<>();
         List<Site> siteList = siteRepository.findAll();
@@ -128,7 +130,8 @@ public class IndexingServiceImpl implements IndexingService {
                         "",
                         settings,
                         siteRepository,
-                        pageRepository));
+                        pageRepository,
+                        manipulator));
 
                 this.setSitesIndexedStatus(site);
             }));
@@ -158,32 +161,6 @@ public class IndexingServiceImpl implements IndexingService {
         return !pool.isQuiescent();
     }
 
-    private void clearDB() {
-        indexRepository.deleteAllInBatch();
-        lemmaRepository.deleteAllInBatch();
-        pageRepository.deleteAllInBatch();
-        siteRepository.deleteAllInBatch();
-    }
-
-    private void siteSaver() {
-        List<Site> sites = new ArrayList<>();
-        for (SiteConfig site : sitesList.getSites()) {
-            Site siteToSave = new Site();
-            siteToSave.setUrl(this.removeLastDash(site.getUrl()));
-            siteToSave.setName(site.getName());
-            siteToSave.setStatus(INDEXED);
-            siteToSave.setLastError(null);
-            siteToSave.setStatusTime(LocalDateTime.now());
-            sites.add(siteToSave);
-        }
-        siteRepository.saveAllAndFlush(sites);
-    }
-
-    private String removeLastDash(String url) {
-        return url.trim().endsWith("/") ?
-                url.substring(0, url.length() - 1) : url;
-    }
-
     private void stopIndexingSites() {
         if (!isIndexing()) {
             return;
@@ -191,126 +168,8 @@ public class IndexingServiceImpl implements IndexingService {
 
         SiteScrubber.isStopped = true;
         pool.shutdown();
-        this.setFailedState();
+        manipulator.setFailedState();
         log.info("Индексация остановлена!");
-    }
-
-    private void setFailedState() {
-        List<Site> sitesList = siteRepository.findAll();
-        sitesList.forEach(site -> {
-            site.setStatus(FAILED);
-            site.setStatusTime(LocalDateTime.now());
-            site.setLastError("Индексация остановлена пользователем");
-
-            log.info("Список сайтов не прошедших индексацию сохранён!");
-            siteRepository.saveAllAndFlush(sitesList);
-        });
-    }
-
-    private boolean urlChecker(String url) throws IOException {
-
-        String regex = "https?://[\\w\\W]+";
-
-        if (!url.matches(regex))
-            return false;
-
-        if (Jsoup.connect(url)
-                .ignoreHttpErrors(true)
-                .ignoreContentType(true)
-                .get()
-                .connection()
-                .response()
-                .statusCode() == 404) {
-            return false;
-        }
-
-        for (SiteConfig site : sitesList.getSites()) {
-            if (url.startsWith(site.getUrl())) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private void siteScrubber(String url) {
-
-        try {
-            Document document = Jsoup.connect(url).get();
-            Site siteFromDb = this.siteChecker(url);
-
-            if (siteFromDb != null) {
-                this.checkSiteAndSavePageToDb(
-                        document,
-                        siteFromDb,
-                        url.replace(siteFromDb.getUrl(), ""));
-            }
-
-        } catch (IOException ex) {
-            String message = "Страницу " + url + " проиндексировать не удалось";
-            this.setFailedStateSite(url, message);
-        }
-    }
-
-    private Site siteChecker(String url) {
-        return siteRepository.findFirstByUrl(url).orElseThrow(() -> {
-
-            log.error("По ссылке: %s сайта нет!".formatted(url));
-            return new ObjectNotFoundException("По ссылке: %s сайта нет!".formatted(url));
-        });
-    }
-
-    private void setFailedStateSite(String url, String message) {
-        Site siteFromDb = this.siteChecker(url);
-        siteFromDb.setStatus(FAILED);
-        siteFromDb.setLastError(message);
-        siteFromDb.setStatusTime(LocalDateTime.now());
-
-        siteRepository.saveAndFlush(siteFromDb);
-    }
-
-    private void checkSiteAndSavePageToDb(Document document, Site site, String path) {
-        Site siteFromDb = this.siteChecker(site.getUrl());
-
-        if (siteFromDb != null) {
-            siteFromDb.setLastError(null);
-            siteFromDb.setStatusTime(LocalDateTime.now());
-            siteRepository.saveAndFlush(siteFromDb);
-        }
-
-        Page page = checkPage(document, site, path);
-        if (page.getCode() < 220) {
-            this.savePageInBd(page);
-        }
-    }
-
-    private synchronized Page checkPage(Document document, Site site, String path) {
-        log.error("стрвницы нет!");
-        return pageRepository.findFirstByPathAndSite(this.urlVerification(path, site), site).orElseGet(()
-                -> this.createPage(document, site, path));
-    }
-
-    private Page createPage(Document document, Site site, String path) {
-        Page newPage = new Page();
-        newPage.setCode(document.connection().response().statusCode());
-        newPage.setPath(this.urlVerification(path, site));
-        newPage.setSite(site);
-        newPage.setContent(this.siteHtmlTagsCleaner(document.html()));
-
-        return newPage;
-    }
-
-    private String urlVerification(String url, Site site) {
-        return url.equals(site.getUrl()) ? "/"
-                : url.replace(site.getUrl(), "");
-    }
-
-    private synchronized void savePageInBd(Page page) {
-        pageRepository.saveAndFlush(page);
-    }
-
-    private String siteHtmlTagsCleaner(String html) {
-        return Jsoup.parse(html).text();
     }
 }
 

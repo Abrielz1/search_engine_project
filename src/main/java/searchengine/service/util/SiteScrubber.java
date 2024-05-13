@@ -1,17 +1,13 @@
 package searchengine.service.util;
 
 import lombok.extern.slf4j.Slf4j;
-import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 import searchengine.config.JsoupSettings;
-import searchengine.exception.exceptions.ObjectNotFoundException;
-import searchengine.model.Page;
 import searchengine.model.Site;
 import searchengine.repository.PageRepository;
 import searchengine.repository.SiteRepository;
 import java.io.IOException;
-import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ForkJoinTask;
@@ -29,11 +25,20 @@ public class SiteScrubber extends RecursiveAction {
 
     private final JsoupSettings settings;
 
+    private final EntityManipulator manipulator;
+
+    SiteController siteController;
+
+    private final SiteRepository siteRepository;
+
+    private final PageRepository pageRepository;
+
     public SiteScrubber(Site site,
                         String path,
                         JsoupSettings settings,
                         SiteRepository siteRepository,
-                        PageRepository pageRepository) {
+                        PageRepository pageRepository,
+                        EntityManipulator manipulator) {
 
         this.site = site;
         this.path = path;
@@ -41,13 +46,8 @@ public class SiteScrubber extends RecursiveAction {
         this.siteController = new SiteController(siteRepository, settings);
         this.siteRepository = siteRepository;
         this.pageRepository = pageRepository;
+        this.manipulator = manipulator;
     }
-
-    SiteController siteController;
-
-    private final SiteRepository siteRepository;
-
-    private final PageRepository pageRepository;
 
     @Override
     protected void compute() {
@@ -66,55 +66,15 @@ public class SiteScrubber extends RecursiveAction {
         ForkJoinTask.invokeAll(threadPool);
     }
 
-
-    public Document documentGetter() {
+    private Document documentGetter() {
         Document document;
         try {
             document = siteController.accessSite(site.getUrl().concat(path));
-            this.siteAndPageSaverToDb(document);
+            manipulator.checkSiteAndSavePageToDb(document, site, path);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
         return document;
-    }
-
-    private void siteAndPageSaverToDb(Document document) {
-
-        Site siteInDb = siteChecker(site.getUrl());
-        siteInDb.setLastError(null);
-        siteInDb.setStatusTime(LocalDateTime.now());
-        siteRepository.saveAndFlush(siteInDb);
-
-        Page page = checkerPageInDb(document);
-
-        if (page.getCode() < 220) {
-            this.savePageInBd(page);
-        }
-    }
-
-    private Site siteChecker(String url) {
-        return siteRepository.findFirstByUrl(url).orElseThrow(() -> {
-
-            log.error("По ссылке: %s сайта нет!".formatted(url));
-            return new ObjectNotFoundException("По ссылке: %s сайта нет!".formatted(url));
-        });
-    }
-
-    private Page createPage(Document document, Site site, String path) {
-        Page newPage = new Page();
-        newPage.setCode(document.connection().response().statusCode());
-        newPage.setPath(this.urlChecker(path));
-        newPage.setSite(site);
-        newPage.setContent(this.siteHtmlTagsCleaner(document.html()));
-
-        return newPage;
-    }
-
-    private synchronized Page checkerPageInDb(Document document) {
-
-        log.error("страницы нет!");
-        return pageRepository.findFirstByPathAndSite(this.urlChecker(path), site).orElseGet(()
-                -> createPage(document, site, path));
     }
 
     private Set<String> getUrls(Document document) {
@@ -138,24 +98,12 @@ public class SiteScrubber extends RecursiveAction {
 
     private SiteScrubber createSiteScrubberThread(String url) {
 
-        String path = this.urlChecker(url);
+        String path = manipulator.urlChecker(url, site);
         return new SiteScrubber(site,
                 path,
                 settings,
                 siteRepository,
-                pageRepository);
-    }
-
-    private String urlChecker(String url) {
-        return url.equals(site.getUrl()) ? "/"
-                : url.replace(site.getUrl(), "");
-    }
-
-    private String siteHtmlTagsCleaner(String html) {
-        return Jsoup.parse(html).text();
-    }
-
-    private synchronized void savePageInBd(Page page) {
-        pageRepository.saveAndFlush(page);
+                pageRepository,
+                manipulator);
     }
 }
