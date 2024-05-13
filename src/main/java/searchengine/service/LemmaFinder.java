@@ -1,4 +1,4 @@
-package searchengine.service.util;
+package searchengine.service;
 
 public interface LemmaFinder {
 

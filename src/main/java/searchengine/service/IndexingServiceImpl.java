@@ -107,11 +107,9 @@ public class IndexingServiceImpl implements IndexingService {
             }
         } catch (IOException exception) {
             exception.printStackTrace();
+            response.setError("Данная страница находится за пределами сайтов, " +
+                    "указанных в конфигурационном файле");
         }
-        response.setError("""
-                            Данная страница находится за пределами сайтов,
-                            указанных в конфигурационном файле
-                            """);
 
         return response;
     }
@@ -211,7 +209,7 @@ public class IndexingServiceImpl implements IndexingService {
 
     private boolean urlChecker(String url) throws IOException {
 
-        String regex = "https://[\\w\\W]+";
+        String regex = "https?://[\\w\\W]+";
 
         if (!url.matches(regex))
             return false;

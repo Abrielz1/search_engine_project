@@ -57,7 +57,7 @@ public class ApiController {
     @ResponseStatus(HttpStatus.CREATED)
     public IndexingPagingResponseDTO indexPage(@RequestParam String url) {
 
-        return null;
+        return indexingService.startIndexPage(url);
     }
 
     @GetMapping("/search")
