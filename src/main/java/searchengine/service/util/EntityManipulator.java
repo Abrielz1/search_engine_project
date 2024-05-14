@@ -73,13 +73,13 @@ public class EntityManipulator {
         }
     }
 
-    public synchronized Page checkPage(Document document, Site site, String path) {
+    private synchronized Page checkPage(Document document, Site site, String path) {
         log.error("стрвницы нет!");
         return pageRepository.findFirstByPathAndSite(this.urlVerification(path, site), site).orElseGet(()
                 -> this.createPage(document, site, path));
     }
 
-    public Page createPage(Document document, Site site, String path) {
+    private Page createPage(Document document, Site site, String path) {
         Page newPage = new Page();
         newPage.setCode(document.connection().response().statusCode());
         newPage.setPath(this.urlVerification(path, site));
@@ -94,11 +94,11 @@ public class EntityManipulator {
                 : url.replace(site.getUrl(), "");
     }
 
-    public synchronized void savePageInBd(Page page) {
+    private synchronized void savePageInBd(Page page) {
         pageRepository.saveAndFlush(page);
     }
 
-    public String siteHtmlTagsCleaner(String html) {
+    private String siteHtmlTagsCleaner(String html) {
         return Jsoup.parse(html).text();
     }
 
@@ -146,7 +146,6 @@ public class EntityManipulator {
         pageRepository.deleteAllInBatch();
         siteRepository.deleteAllInBatch();
     }
-
 
     public void siteSaver() {
         List<Site> sites = new ArrayList<>();
