@@ -182,7 +182,7 @@ public class EntityManipulator {
                 : url.replace(site.getUrl(), "");
     }
 
-    public void saveLemmasAndIndexes(Page page) {
+    public void proceedLemmasAndIndexes(Page page) {
         Set<Lemma> lemmas = ConcurrentHashMap.newKeySet();
         Set<Index> indices = ConcurrentHashMap.newKeySet();
     String pageText = Jsoup.clean(page.getContent(), Safelist.relaxed())
@@ -190,7 +190,6 @@ public class EntityManipulator {
 
         Map<String, Integer> lemmasWithRanks = lemmaFinder.collectLemmas(pageText);
         this.lemmasAndRanksManipulatorAndSaver(lemmasWithRanks, page);
-
     }
 
     private synchronized void lemmasAndRanksManipulatorAndSaver(Map<String, Integer> lemmasWithRanks,

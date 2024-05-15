@@ -15,16 +15,17 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import java.util.Comparator;
 import java.util.Objects;
 
-@Table(name = "lemma ", indexes = @javax.persistence.Index(columnList = "lemma, site_id"))
+@Table(name = "lemma", indexes = @javax.persistence.Index(columnList = "lemma, site_id"))
 @Getter
 @Setter
 @Entity
 @ToString
 @AllArgsConstructor
 @NoArgsConstructor
-public class Lemma {
+public class Lemma implements Comparable<Lemma> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -41,6 +42,8 @@ public class Lemma {
     @Column(nullable = false)
     private Integer frequency;
 
+
+
     @Override
     public final boolean equals(Object o) {
         if (this == o) return true;
@@ -55,5 +58,12 @@ public class Lemma {
     @Override
     public final int hashCode() {
         return this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass().hashCode() : getClass().hashCode();
+    }
+
+    @Override
+    public int compareTo(Lemma o) {
+        return Float.compare(
+                getFrequency(),
+                o.getFrequency());
     }
 }
