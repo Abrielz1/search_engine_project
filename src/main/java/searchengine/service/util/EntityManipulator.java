@@ -6,20 +6,28 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.jsoup.safety.Safelist;
 import org.springframework.stereotype.Service;
 import searchengine.config.SiteConfig;
 import searchengine.config.SitesList;
 import searchengine.exception.exceptions.ObjectNotFoundException;
+import searchengine.model.Index;
+import searchengine.model.Lemma;
 import searchengine.model.Page;
 import searchengine.model.Site;
 import searchengine.repository.IndexRepository;
 import searchengine.repository.LemmaRepository;
 import searchengine.repository.PageRepository;
 import searchengine.repository.SiteRepository;
+import searchengine.service.LemmaFinder;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import static searchengine.model.enums.SiteStatus.FAILED;
 import static searchengine.model.enums.SiteStatus.INDEXED;
 
@@ -39,6 +47,8 @@ public class EntityManipulator {
     private final IndexRepository indexRepository;
 
     private final SitesList sitesList;
+
+    private final LemmaFinder lemmaFinder;
 
     public void setFailedStateSite(String url, String message) {
 
@@ -170,5 +180,59 @@ public class EntityManipulator {
     public String urlChecker(String url, Site  site) {
         return url.equals(site.getUrl()) ? "/"
                 : url.replace(site.getUrl(), "");
+    }
+
+    public void saveLemmasAndIndexes(Page page) {
+        Set<Lemma> lemmas = ConcurrentHashMap.newKeySet();
+        Set<Index> indices = ConcurrentHashMap.newKeySet();
+    String pageText = Jsoup.clean(page.getContent(), Safelist.relaxed())
+            .replaceAll("[Ёё]", "е").trim();
+
+        Map<String, Integer> lemmasWithRanks = lemmaFinder.collectLemmas(pageText);
+        this.lemmasAndRanksManipulatorAndSaver(lemmasWithRanks, page);
+
+    }
+
+    private synchronized void lemmasAndRanksManipulatorAndSaver(Map<String, Integer> lemmasWithRanks,
+                                                                Page page) {
+        Set<Lemma> lemmas = ConcurrentHashMap.newKeySet();
+        Set<Index> indices = ConcurrentHashMap.newKeySet();
+
+        lemmasWithRanks.forEach((lemma, rank) -> {
+            if (SiteScrubber.isStopped) {
+                return;
+            }
+
+            Lemma newLemma = this.createLemma(lemma, page);
+            lemmas.add(newLemma);
+            indices.add(this.createindex(newLemma, page, rank));
+        });
+
+        lemmaRepository.saveAndFlush(lemmas);
+        indexRepository.saveAndFlush(indices);
+    }
+
+    private Lemma createLemma(String lemma, Page page) {
+        Lemma newLemma;
+        Optional<Lemma> optLemma = lemmaRepository.findFirstByLemma(lemma);
+        if (optLemma.isPresent()) {
+            newLemma = optLemma.get();
+            newLemma.setFrequency(optLemma.get().getFrequency() + 1);
+        } else {
+            newLemma = new Lemma();
+            newLemma.setLemma(lemma);
+            newLemma.setSite(page.getSite());
+            newLemma.setFrequency(1);
+        }
+        return newLemma;
+    }
+
+    private Index createindex(Lemma lemma, Page page, float rank) {
+        Index newIndex = new Index();
+        newIndex.setLemma(lemma);
+        newIndex.setPage(page);
+        newIndex.setRank(rank);
+
+        return newIndex;
     }
 }
