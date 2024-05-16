@@ -80,6 +80,7 @@ public class EntityManipulator {
         Page page = checkPage(document, site, path);
         if (page.getCode() < 220) {
             this.savePageInBd(page);
+            this.proceedLemmasAndIndexes(page);
         }
     }
 
@@ -183,8 +184,7 @@ public class EntityManipulator {
     }
 
     public void proceedLemmasAndIndexes(Page page) {
-        Set<Lemma> lemmas = ConcurrentHashMap.newKeySet();
-        Set<Index> indices = ConcurrentHashMap.newKeySet();
+
     String pageText = Jsoup.clean(page.getContent(), Safelist.relaxed())
             .replaceAll("[Ёё]", "е").trim();
 
@@ -207,8 +207,11 @@ public class EntityManipulator {
             indices.add(this.createindex(newLemma, page, rank));
         });
 
-        lemmaRepository.saveAndFlush(lemmas);
-        indexRepository.saveAndFlush(indices);
+        List<Lemma> lemmaList = new ArrayList<>(lemmas);
+        List<Index> indexList = new ArrayList<>(indices);
+
+        lemmaRepository.saveAllAndFlush(lemmaList);
+        indexRepository.saveAllAndFlush(indexList);
     }
 
     private Lemma createLemma(String lemma, Page page) {

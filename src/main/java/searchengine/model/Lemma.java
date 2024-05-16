@@ -15,7 +15,6 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
-import java.util.Comparator;
 import java.util.Objects;
 
 @Table(name = "lemma", indexes = @javax.persistence.Index(columnList = "lemma, site_id"))
@@ -41,8 +40,6 @@ public class Lemma implements Comparable<Lemma> {
 
     @Column(nullable = false)
     private Integer frequency;
-
-
 
     @Override
     public final boolean equals(Object o) {
