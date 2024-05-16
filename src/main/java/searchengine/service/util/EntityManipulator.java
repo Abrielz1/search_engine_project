@@ -207,11 +207,8 @@ public class EntityManipulator {
             indices.add(this.createindex(newLemma, page, rank));
         });
 
-        List<Lemma> lemmaList = new ArrayList<>(lemmas);
-        List<Index> indexList = new ArrayList<>(indices);
-
-        lemmaRepository.saveAllAndFlush(lemmaList);
-        indexRepository.saveAllAndFlush(indexList);
+        lemmaRepository.saveAllAndFlush(lemmas);
+        indexRepository.saveAllAndFlush(indices);
     }
 
     private Lemma createLemma(String lemma, Page page) {
