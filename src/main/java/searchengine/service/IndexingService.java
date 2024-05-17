@@ -11,4 +11,6 @@ public interface IndexingService {
     IndexingStoppingResponseDTO stopIndexingResponse();
 
     IndexingPagingResponseDTO startIndexPage(String url);
+
+    boolean isIndexing();
 }

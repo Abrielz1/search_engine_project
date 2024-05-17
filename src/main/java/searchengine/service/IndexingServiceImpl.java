@@ -153,6 +153,7 @@ public class IndexingServiceImpl implements IndexingService {
         }
     }
 
+    @Override
     public boolean isIndexing() {
         if (pool == null) {
             return false;
