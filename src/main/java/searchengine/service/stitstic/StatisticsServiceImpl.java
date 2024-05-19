@@ -1,4 +1,4 @@
-package searchengine.service;
+package searchengine.service.stitstic;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,6 +14,7 @@ import searchengine.model.Site;
 import searchengine.repository.LemmaRepository;
 import searchengine.repository.PageRepository;
 import searchengine.repository.SiteRepository;
+import searchengine.service.indexing.IndexingService;
 import searchengine.service.util.EntityManipulator;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoField;

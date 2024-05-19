@@ -3,7 +3,7 @@ package searchengine.dto.page;
 import lombok.Data;
 
 @Data
-public class PageDataDTO {
+public class PageDataDTO implements Comparable<PageDataDTO> {
 
     private String site;
 
@@ -16,4 +16,10 @@ public class PageDataDTO {
     private String snippet;
 
     private Float relevance;
+
+    @Override
+    public int compareTo(PageDataDTO o) {
+        return Float.compare(getRelevance(),
+                o.getRelevance());
+    }
 }

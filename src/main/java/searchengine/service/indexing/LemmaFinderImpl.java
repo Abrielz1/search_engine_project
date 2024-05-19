@@ -1,12 +1,17 @@
-package searchengine.service;
+package searchengine.service.indexing;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.lucene.morphology.LuceneMorphology;
 import org.apache.lucene.morphology.russian.RussianLuceneMorphology;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import searchengine.model.Lemma;
+import searchengine.repository.LemmaRepository;
+
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -15,12 +20,14 @@ import java.util.Set;
 @Slf4j
 @Service
 public class LemmaFinderImpl implements LemmaFinder {
+    private final LemmaRepository lemmaRepository;
 
     private final LuceneMorphology luceneMorphology = new RussianLuceneMorphology();
 
     private final String[] particlesNames = new String[]{"МЕЖД", "ПРЕДЛ", "СОЮЗ"};
 
-    public LemmaFinderImpl() throws IOException {
+    public LemmaFinderImpl(LemmaRepository lemmaRepository) throws IOException {
+        this.lemmaRepository = lemmaRepository;
     }
 
     @Override
@@ -41,10 +48,8 @@ public class LemmaFinderImpl implements LemmaFinder {
                 continue;
             }
 
-            String normalWord = normalWordForms.get(0);
-
-            if (lemmas.containsKey(normalWord)) {
-                lemmas.put(normalWord, lemmas.get(word) + 1);
+            if (lemmas.containsKey(normalWordForms.get(0))) {
+                lemmas.put(normalWordForms.get(0), lemmas.get(word) + 1);
             } else {
                 lemmas.put(word, 1);
             }
@@ -55,12 +60,30 @@ public class LemmaFinderImpl implements LemmaFinder {
 
     @Override
     public Set<String> getLemmaSet(String text) {
-        return null;
+        Set<String> lemmasSet = new HashSet<>();
+        String[] strings = stringManipulator(text);
+
+        for (String i: strings) {
+            if (isWrongWord(i)) {
+                continue;
+            }
+
+          List<String> normalWordForms = luceneMorphology.getNormalForms(i);
+            if (normalWordForms.isEmpty()) {
+                continue;
+            }
+
+            lemmasSet.add(normalWordForms.get(0));
+        }
+
+        return lemmasSet;
     }
 
     @Override
     public Map<String, Set<String>> collectLemmasAndWords(String text) {
-        return null;
+        Map<String, Set<String>> mapLemmasAndWords = new HashMap<>();
+
+        return mapLemmasAndWords;
     }
 
     private String[] stringManipulator(String text) {
@@ -94,5 +117,16 @@ public class LemmaFinderImpl implements LemmaFinder {
 
     private boolean isWordParticle(List<String> baseWordFormsList) {
         return baseWordFormsList.stream().anyMatch(this::isParticle);
+    }
+
+    @Override
+    public List<Lemma> getSortedLemmasSetFromDbAversSorted(Set<String> lemmasSet) {
+        List<Lemma> lemmaList = lemmaRepository.findByLemma(lemmasSet);
+
+        if (lemmaList.size() < lemmasSet.size()) {
+            return new ArrayList<>();
+        }
+
+        return lemmaList;
     }
 }

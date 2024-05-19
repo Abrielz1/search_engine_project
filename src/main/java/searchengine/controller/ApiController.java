@@ -15,12 +15,11 @@ import searchengine.dto.indexing.IndexingStaringResponseDTO;
 import searchengine.dto.indexing.IndexingStoppingResponseDTO;
 import searchengine.dto.page.SearchResponseDTO;
 import searchengine.dto.statistics.StatisticsResponse;
-import searchengine.service.IndexingService;
-import searchengine.service.StatisticsService;
+import searchengine.service.indexing.IndexingService;
+import searchengine.service.search.SearchingService;
+import searchengine.service.stitstic.StatisticsService;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
-import java.util.ArrayList;
-import java.util.List;
 
 @Slf4j
 @RestController
@@ -31,6 +30,8 @@ public class ApiController {
     private final StatisticsService statisticsService;
 
     private final IndexingService indexingService;
+
+    private final SearchingService searchingService;
 
     @GetMapping("/statistics")
     @ResponseStatus(HttpStatus.OK)
@@ -62,7 +63,7 @@ public class ApiController {
 
     @GetMapping("/search")
     @ResponseStatus(HttpStatus.OK)
-    public List<SearchResponseDTO> searchWord(
+    public SearchResponseDTO search(
                                    @RequestParam String query,
                                    @RequestParam(required = false) String site,
                                    @Positive @RequestParam(defaultValue = "0") Integer from,
@@ -70,6 +71,6 @@ public class ApiController {
 
         PageRequest page = PageRequest.of(from / size, size);
 
-        return new ArrayList<>();
+        return searchingService.search(query.replaceAll("[Ёё]]", "е"), site, page, from, size);
     }
 }
