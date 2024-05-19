@@ -2,6 +2,8 @@ package searchengine.service.search;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jsoup.Jsoup;
+import org.jsoup.safety.Safelist;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -10,13 +12,18 @@ import searchengine.dto.page.PageDataDTO;
 import searchengine.dto.page.SearchResponseDTO;
 import searchengine.model.Lemma;
 import searchengine.model.Page;
+import searchengine.model.Site;
 import searchengine.repository.PageRepository;
 import searchengine.repository.SiteRepository;
 import searchengine.service.indexing.LemmaFinder;
 import searchengine.service.util.EntityManipulator;
+import searchengine.service.util.SnippetManipulator;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -33,6 +40,8 @@ public class SearchingServiceImpl implements SearchingService {
     private final EntityManipulator manipulator;
 
     private final LemmaFinder lemmaFinder;
+
+    private final SnippetManipulator snippetManipulator;
 
     @Override
     public SearchResponseDTO search(String query,
@@ -94,14 +103,27 @@ public class SearchingServiceImpl implements SearchingService {
 
     private Set<Page> checkPageInDb(List<Lemma> lemmaList,
                                     String site) {
+    List<Site> sites = findSitesListInDb(site);
+    List<Lemma> listNonFrequentLemmas = this.pickNonFrequentLemmas(lemmaList);
+    Set<Page> resultOfProceedPages = pageRepository.findFirstByLemmasAndSite(listNonFrequentLemmas, site);
 
 
+        for (Lemma lemma : listNonFrequentLemmas) {
+            Set<Page> foundPagesSet = pageRepository.findByOneLemmaAndSitesAndPages(lemma,
+                                                                                    sites,
+                                                                                    resultOfProceedPages);
+            resultOfProceedPages.clear();
+            resultOfProceedPages.addAll(foundPagesSet);
+        }
+
+    return resultOfProceedPages;
     }
 
     private List<PageDataDTO> createResponceDataDtoList(List<Lemma> lemmaList,
                                                         Set<Page> setPagesInDb) {
+    List<PageDataDTO> resultList = new ArrayList<>();
 
-
+        return null;
     }
 
 
@@ -110,6 +132,55 @@ public class SearchingServiceImpl implements SearchingService {
                                             Integer size) {
         int endIndex = from + size;
         return responceDataDtoList.subList(from, Math.max(endIndex, responceDataDtoList.size()));
+    }
+
+    private List<Site> findSitesListInDb(String site) {
+        List<Site> sites = new ArrayList<>();
+        Optional<Site> siteInBd = siteRepository.findFirstByUrl(site);
+        if (site != null && siteInBd.isPresent()) {
+            sites.add(siteInBd.get());
+        } else {
+            sites.addAll(siteRepository.findAll());
+        }
+
+        return sites;
+    }
+
+    private List<Lemma> pickNonFrequentLemmas(List<Lemma> lemmaList) {
+        return lemmaList.stream()
+                .filter(frequency->
+                        frequency.getFrequency() < 250).
+                collect(Collectors.toList());
+    }
+
+    private PageDataDTO collectData(Page page,
+                                    String content,
+                                    List<Lemma> sortedLemmas) {
+        PageDataDTO pageDataDTO = new PageDataDTO();
+
+        String pageText = Jsoup.clean(content, Safelist.relaxed())
+                .replaceAll("&nbsp;", " ")
+                .replaceAll("<[^>]*>", " ")
+                .replaceAll("https?://[\\w\\W]\\S+", "")
+                .replaceAll("\\s*\\n+\\s*", " · ");
+
+        pageDataDTO.setSite(page.getSite().getUrl());
+        pageDataDTO.setUri(page.getPath());
+        pageDataDTO.setSiteName(page.getSite().getName());
+        pageDataDTO.setTitle(this.findTitle(content));
+        pageDataDTO.setRelevance(this.getRelevance(page));
+        pageDataDTO.setSnippet(snippetManipulator.createSnippet(pageText, sortedLemmas));
+
+        return pageDataDTO;
+
+    }
+
+    private Float getRelevance(Page page) {
+        return null;
+    }
+
+    private String findTitle(String content) {
+        return null;
     }
 }
 
