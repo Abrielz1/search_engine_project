@@ -18,8 +18,8 @@ import searchengine.repository.SiteRepository;
 import searchengine.service.indexing.LemmaFinder;
 import searchengine.service.util.EntityManipulator;
 import searchengine.service.util.SnippetManipulator;
-
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -122,8 +122,14 @@ public class SearchingServiceImpl implements SearchingService {
     private List<PageDataDTO> createResponceDataDtoList(List<Lemma> lemmaList,
                                                         Set<Page> setPagesInDb) {
     List<PageDataDTO> resultList = new ArrayList<>();
+        for (Page page: setPagesInDb) {
+            String pageContent = page.getContent();
+            PageDataDTO newData = this.collectData(page, pageContent, lemmaList);
+            resultList.add(newData);
+        }
 
-        return null;
+        resultList.sort(Collections.reverseOrder());
+        return resultList;
     }
 
 
