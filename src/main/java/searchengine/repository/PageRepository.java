@@ -19,13 +19,24 @@ public interface PageRepository extends JpaRepository<Page, Long> {
     boolean existsByPathAndSite(String path, Site site);
 
     @Query(value = """
-                   
+                   SELECT *
+                   FROM page AS p
+                   JOIN site s ON p.site_id = s.id
+                   JOIN lemma l ON s.id = l.site_id
+                   WHERE l.id IN :listNonFrequentLemmas 
+                   AND p.site_id LIKE :site
                    """, nativeQuery = true)
     Set<Page> findFirstByLemmasAndSite(List<Lemma> listNonFrequentLemmas,
                                        String site);
 
     @Query(value = """
-                   
+                    SELECT *
+                   FROM page AS p
+                   JOIN site s ON p.site_id = s.id
+                   JOIN lemma l ON s.id = l.site_id
+                   WHERE l.id IN :listNonFrequentLemmas
+                   AND p.site_id IN :sites
+                   AND p.id IN :pagesToProceed
                    """, nativeQuery = true)
     Set<Page> findByOneLemmaAndSitesAndPages(Lemma lemma,
                                              List<Site> sites,
