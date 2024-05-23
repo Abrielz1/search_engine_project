@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import searchengine.config.SitesList;
@@ -13,10 +12,10 @@ import searchengine.dto.page.SearchResponseDTO;
 import searchengine.model.Lemma;
 import searchengine.model.Page;
 import searchengine.model.Site;
+import searchengine.repository.IndexRepository;
 import searchengine.repository.PageRepository;
 import searchengine.repository.SiteRepository;
 import searchengine.service.indexing.LemmaFinder;
-import searchengine.service.util.EntityManipulator;
 import searchengine.service.util.SnippetManipulator;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -30,6 +29,7 @@ import java.util.stream.Collectors;
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class SearchingServiceImpl implements SearchingService {
+    private final IndexRepository indexRepository;
 
     private final SitesList sitesList;
 
@@ -37,16 +37,18 @@ public class SearchingServiceImpl implements SearchingService {
 
     private final PageRepository pageRepository;
 
-    private final EntityManipulator manipulator;
-
     private final LemmaFinder lemmaFinder;
 
     private final SnippetManipulator snippetManipulator;
 
+    private Float maxRelevance;
+
+    private final String TITLE_START = "<title>";
+    private final String TITLE_END = "</title>";
+
     @Override
     public SearchResponseDTO search(String query,
                                     String site,
-                                    PageRequest page,
                                     Integer from,
                                     Integer size) {
 
@@ -70,7 +72,7 @@ public class SearchingServiceImpl implements SearchingService {
             newSearchResponseDTO.setResult(false);
             newSearchResponseDTO.setError("Страниц, удовлетворяющих запрос, нет");
         }
-        return this.searchResponse(lemmaList, site, page, from, size);
+        return this.searchResponse(lemmaList, site, from, size);
     }
 
     private boolean siteChecker(String site) {
@@ -86,7 +88,6 @@ public class SearchingServiceImpl implements SearchingService {
 
     private SearchResponseDTO searchResponse(List<Lemma> lemmaList,
                                              String site,
-                                             PageRequest page,
                                              Integer from,
                                              Integer size) {
     SearchResponseDTO response = new SearchResponseDTO();
@@ -131,7 +132,6 @@ public class SearchingServiceImpl implements SearchingService {
         resultList.sort(Collections.reverseOrder());
         return resultList;
     }
-
 
     private List<PageDataDTO> getListOfData(List<PageDataDTO> responceDataDtoList,
                                             Integer from,
@@ -182,10 +182,19 @@ public class SearchingServiceImpl implements SearchingService {
     }
 
     private Float getRelevance(Page page) {
-        return null;
+       if (maxRelevance == null) {
+           maxRelevance = indexRepository.getMaxIndex();
+       }
+
+        return indexRepository.getReference(page, maxRelevance);
     }
 
     private String findTitle(String content) {
+        if (content.contains(TITLE_START) && content.contains(TITLE_END)) {
+            return content.substring(content.indexOf(TITLE_START) + TITLE_START.length(),
+                    content.indexOf(TITLE_END));
+        }
+
         return null;
     }
 }
