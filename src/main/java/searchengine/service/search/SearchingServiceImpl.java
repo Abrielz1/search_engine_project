@@ -5,7 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import searchengine.config.SitesList;
 import searchengine.dto.page.PageDataDTO;
 import searchengine.dto.page.SearchResponseDTO;
@@ -26,7 +25,6 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
-@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class SearchingServiceImpl implements SearchingService {
     private final IndexRepository indexRepository;

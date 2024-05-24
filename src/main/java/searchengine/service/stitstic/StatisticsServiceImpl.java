@@ -3,7 +3,6 @@ package searchengine.service.stitstic;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import searchengine.config.SiteConfig;
 import searchengine.config.SitesList;
 import searchengine.dto.statistics.DetailedStatisticsItem;
@@ -25,7 +24,6 @@ import static searchengine.model.enums.SiteStatus.INDEXED;
 
 @Slf4j
 @Service
-@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class StatisticsServiceImpl implements StatisticsService {
 
@@ -42,7 +40,6 @@ public class StatisticsServiceImpl implements StatisticsService {
     private final PageRepository pageRepository;
 
     @Override
-    @Transactional
     public StatisticsResponse getStatistics() {
 
         return responseManipulator(this.totalStatisticsManipulator(),
