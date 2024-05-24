@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import searchengine.config.SitesList;
 import searchengine.dto.page.PageDataDTO;
 import searchengine.dto.page.SearchResponseDTO;
@@ -25,8 +26,10 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class SearchingServiceImpl implements SearchingService {
+
     private final IndexRepository indexRepository;
 
     private final SitesList sitesList;
@@ -42,6 +45,7 @@ public class SearchingServiceImpl implements SearchingService {
     private Float maxRelevance;
 
     @Override
+    @Transactional
     public SearchResponseDTO search(String query,
                                     String site,
                                     Integer from,
@@ -68,7 +72,10 @@ public class SearchingServiceImpl implements SearchingService {
             newSearchResponseDTO.setError("Страниц, удовлетворяющих запрос, нет");
         }
 
-        return this.searchResponse(lemmaList, site, from, size);
+        return this.searchResponse(lemmaList,
+                site,
+                from,
+                size);
     }
 
     private boolean siteChecker(String site) {
@@ -87,13 +94,17 @@ public class SearchingServiceImpl implements SearchingService {
                                              Integer from,
                                              Integer size) {
     SearchResponseDTO response = new SearchResponseDTO();
-    Set<Page> setPagesInDb = this.checkPageInDb(lemmaList, site);
-    List<PageDataDTO> responceDataDtoList = this.createResponceDataDtoList(lemmaList, setPagesInDb);
+    Set<Page> setPagesInDb = this.checkPageInDb(lemmaList,
+                                                 site);
+    List<PageDataDTO> responceDataDtoList = this.createResponceDataDtoList(lemmaList,
+                                                                            setPagesInDb);
 
         response.setResult(true);
         response.setError(null);
         response.setCount(responceDataDtoList.size());
-        response.setData(this.getListOfData(responceDataDtoList, from, size));
+        response.setData(this.getListOfData(responceDataDtoList,
+                                                            from,
+                                                            size));
 
         return response;
     }
@@ -102,7 +113,8 @@ public class SearchingServiceImpl implements SearchingService {
                                     String site) {
     List<Site> sites = findSitesListInDb(site);
     List<Lemma> listNonFrequentLemmas = this.pickNonFrequentLemmas(lemmaList);
-    Set<Page> resultOfProceedPages = pageRepository.getByLemmasAndSite(listNonFrequentLemmas, sites);
+    Set<Page> resultOfProceedPages = pageRepository.getByLemmasAndSite(listNonFrequentLemmas,
+                                                                                        sites);
 
 
         for (Lemma lemma : listNonFrequentLemmas) {
@@ -119,6 +131,7 @@ public class SearchingServiceImpl implements SearchingService {
     private List<PageDataDTO> createResponceDataDtoList(List<Lemma> lemmaList,
                                                         Set<Page> setPagesInDb) {
     List<PageDataDTO> resultList = new ArrayList<>();
+
         for (Page page: setPagesInDb) {
             String pageContent = page.getContent();
             PageDataDTO newData = this.collectData(page, pageContent, lemmaList);
@@ -126,19 +139,21 @@ public class SearchingServiceImpl implements SearchingService {
         }
 
         resultList.sort(Collections.reverseOrder());
+
         return resultList;
     }
 
     private List<PageDataDTO> getListOfData(List<PageDataDTO> responceDataDtoList,
                                             Integer from,
                                             Integer size) {
-        int endIndex = from + size;
-        return responceDataDtoList.subList(from, Math.max(endIndex, responceDataDtoList.size()));
+        return responceDataDtoList
+                .subList(from, Math.max(from + size, responceDataDtoList.size()));
     }
 
     private List<Site> findSitesListInDb(String site) {
         List<Site> sites = new ArrayList<>();
         Optional<Site> siteInBd = siteRepository.findFirstByUrl(site);
+
         if (site != null && siteInBd.isPresent()) {
             sites.add(siteInBd.get());
         } else {
@@ -174,7 +189,6 @@ public class SearchingServiceImpl implements SearchingService {
         pageDataDTO.setSnippet(snippetManipulator.createSnippet(pageText, sortedLemmas));
 
         return pageDataDTO;
-
     }
 
     private Float getRelevance(Page page) {
@@ -191,9 +205,9 @@ public class SearchingServiceImpl implements SearchingService {
         if (content.contains(TITLE_START) && content.contains(TITLE_END)) {
             return content.substring(content.indexOf(TITLE_START) + TITLE_START.length(),
                     content.indexOf(TITLE_END));
+        } else {
+            return null;
         }
-
-        return null;
     }
 }
 

@@ -8,6 +8,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.safety.Safelist;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import searchengine.config.SiteConfig;
 import searchengine.config.SitesList;
 import searchengine.exception.exceptions.ObjectNotFoundException;
@@ -35,6 +36,7 @@ import static searchengine.model.enums.SiteStatus.INDEXED;
 @Getter
 @Setter
 @Service
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class EntityManipulator {
 
@@ -50,6 +52,7 @@ public class EntityManipulator {
 
     private final LemmaFinder lemmaFinder;
 
+    @Transactional
     public void setFailedStateSite(String url, String message) {
 
         Site siteFromDb = this.siteChecker(url);
@@ -68,6 +71,7 @@ public class EntityManipulator {
         });
     }
 
+    @Transactional
     public void checkSiteAndSavePageToDb(Document document, Site site, String path) {
         Site siteFromDb = this.siteChecker(site.getUrl());
 
@@ -115,9 +119,7 @@ public class EntityManipulator {
 
     public boolean urlChecker(String url) throws IOException {
 
-        String regex = "https?://[\\w\\W]+";
-
-        if (!url.matches(regex))
+        if (!url.matches("https?://[\\w\\W]+"))
             return false;
 
         if (Jsoup.connect(url)
@@ -139,6 +141,7 @@ public class EntityManipulator {
         return false;
     }
 
+    @Transactional
     public void setFailedState() {
         List<Site> sitesList = siteRepository.findAll();
         sitesList.forEach(site -> {
@@ -158,8 +161,10 @@ public class EntityManipulator {
         siteRepository.deleteAllInBatch();
     }
 
+    @Transactional
     public void siteSaver() {
         List<Site> sites = new ArrayList<>();
+
         for (SiteConfig site : sitesList.getSites()) {
             Site siteToSave = new Site();
             siteToSave.setUrl(this.removeLastDash(site.getUrl()));
@@ -169,6 +174,7 @@ public class EntityManipulator {
             siteToSave.setStatusTime(LocalDateTime.now());
             sites.add(siteToSave);
         }
+
         siteRepository.saveAllAndFlush(sites);
     }
 
@@ -183,17 +189,18 @@ public class EntityManipulator {
                 : url.replace(site.getUrl(), "");
     }
 
- //   @Transactional
+    @Transactional
     public void proceedLemmasAndIndexes(Page page) {
-
     String pageText = Jsoup.clean(page.getContent(), Safelist.relaxed())
             .replaceAll("[Ёё]", "е").trim();
 
         Map<String, Integer> lemmasWithRanks = lemmaFinder.collectLemmas(pageText);
-        this.lemmasAndRanksManipulatorAndSaver(lemmasWithRanks, page);
+        this.lemmasAndRanksManipulatorAndSaver(lemmasWithRanks,
+                                                page);
     }
 
-    private synchronized void lemmasAndRanksManipulatorAndSaver(Map<String, Integer> lemmasWithRanks,
+    private synchronized void lemmasAndRanksManipulatorAndSaver(Map<String,
+                                                                Integer> lemmasWithRanks,
                                                                 Page page) {
         Set<Lemma> lemmas = ConcurrentHashMap.newKeySet();
         Set<Index> indices = ConcurrentHashMap.newKeySet();
@@ -205,14 +212,17 @@ public class EntityManipulator {
 
             Lemma newLemma = this.createLemma(lemma, page);
             lemmas.add(newLemma);
-            indices.add(this.createindex(newLemma, page, rank));
+            indices.add(this.createindex(newLemma,
+                                         page,
+                                         rank));
         });
 
         lemmaRepository.saveAllAndFlush(lemmas);
         indexRepository.saveAllAndFlush(indices);
     }
 
-    private Lemma createLemma(String lemma, Page page) {
+    private Lemma createLemma(String lemma,
+                              Page page) {
         Lemma newLemma;
         Optional<Lemma> optLemma = lemmaRepository.findFirstByLemma(lemma);
         if (optLemma.isPresent()) {
@@ -224,10 +234,13 @@ public class EntityManipulator {
             newLemma.setSite(page.getSite());
             newLemma.setFrequency(1);
         }
+
         return newLemma;
     }
 
-    private Index createindex(Lemma lemma, Page page, float rank) {
+    private Index createindex(Lemma lemma,
+                              Page page,
+                              float rank) {
         Index newIndex = new Index();
         newIndex.setLemma(lemma);
         newIndex.setPage(page);
