@@ -8,6 +8,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.safety.Safelist;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import searchengine.config.SiteConfig;
 import searchengine.config.SitesList;
 import searchengine.exception.exceptions.ObjectNotFoundException;
@@ -35,6 +36,7 @@ import static searchengine.model.enums.SiteStatus.INDEXED;
 @Getter
 @Setter
 @Service
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class EntityManipulator {
 
@@ -50,6 +52,7 @@ public class EntityManipulator {
 
     private final LemmaFinder lemmaFinder;
 
+    @Transactional
     public void setFailedStateSite(String url, String message) {
 
         Site siteFromDb = this.siteChecker(url);
@@ -68,6 +71,7 @@ public class EntityManipulator {
         });
     }
 
+    @Transactional
     public void checkSiteAndSavePageToDb(Document document, Site site, String path) {
         Site siteFromDb = this.siteChecker(site.getUrl());
 
@@ -85,7 +89,7 @@ public class EntityManipulator {
     }
 
     private synchronized Page checkPage(Document document, Site site, String path) {
-        log.error("стрвницы нет!");
+        log.error("страницы нет!");
         return pageRepository.findFirstByPathAndSite(this.urlVerification(path, site), site).orElseGet(()
                 -> this.createPage(document, site, path));
     }
@@ -151,6 +155,7 @@ public class EntityManipulator {
         });
     }
 
+    @Transactional
     public void clearDB() {
         indexRepository.deleteAllInBatch();
         lemmaRepository.deleteAllInBatch();
@@ -158,6 +163,7 @@ public class EntityManipulator {
         siteRepository.deleteAllInBatch();
     }
 
+    @Transactional
     public void siteSaver() {
         List<Site> sites = new ArrayList<>();
         for (SiteConfig site : sitesList.getSites()) {
@@ -183,6 +189,7 @@ public class EntityManipulator {
                 : url.replace(site.getUrl(), "");
     }
 
+    @Transactional
     public void proceedLemmasAndIndexes(Page page) {
 
     String pageText = Jsoup.clean(page.getContent(), Safelist.relaxed())

@@ -42,6 +42,7 @@ public class StatisticsServiceImpl implements StatisticsService {
     private final PageRepository pageRepository;
 
     @Override
+    @Transactional
     public StatisticsResponse getStatistics() {
 
         return responseManipulator(this.totalStatisticsManipulator(),

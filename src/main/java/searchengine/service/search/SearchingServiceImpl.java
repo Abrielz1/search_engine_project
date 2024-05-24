@@ -43,9 +43,6 @@ public class SearchingServiceImpl implements SearchingService {
 
     private Float maxRelevance;
 
-    private final String TITLE_START = "<title>";
-    private final String TITLE_END = "</title>";
-
     @Override
     public SearchResponseDTO search(String query,
                                     String site,
@@ -55,6 +52,7 @@ public class SearchingServiceImpl implements SearchingService {
         SearchResponseDTO newSearchResponseDTO = new SearchResponseDTO();
 
         Set<String> lemmasSet = lemmaFinder.getLemmaSet(query);
+        List<Lemma> lemmaList = this.findListOfLemmasInDbAversSorted(lemmasSet);
 
         if (site != null && !this.siteChecker(site)) {
             newSearchResponseDTO.setResult(false);
@@ -67,11 +65,11 @@ public class SearchingServiceImpl implements SearchingService {
             newSearchResponseDTO.setError("Задан пустой поисковый запрос");
         }
 
-        List<Lemma> lemmaList = this.findListOfLemmasInDbAversSorted(lemmasSet);
         if (lemmaList.size() == 0) {
             newSearchResponseDTO.setResult(false);
             newSearchResponseDTO.setError("Страниц, удовлетворяющих запрос, нет");
         }
+
         return this.searchResponse(lemmaList, site, from, size);
     }
 
@@ -92,7 +90,7 @@ public class SearchingServiceImpl implements SearchingService {
                                              Integer size) {
     SearchResponseDTO response = new SearchResponseDTO();
     Set<Page> setPagesInDb = this.checkPageInDb(lemmaList, site);
-    List<PageDataDTO> responceDataDtoList = this.createResponceDataDtoList(lemmaList, setPagesInDb); // todo
+    List<PageDataDTO> responceDataDtoList = this.createResponceDataDtoList(lemmaList, setPagesInDb);
 
         response.setResult(true);
         response.setError(null);
@@ -190,6 +188,8 @@ public class SearchingServiceImpl implements SearchingService {
     }
 
     private String findTitle(String content) {
+        String TITLE_START = "<title>";
+        String TITLE_END = "</title>";
         if (content.contains(TITLE_START) && content.contains(TITLE_END)) {
             return content.substring(content.indexOf(TITLE_START) + TITLE_START.length(),
                     content.indexOf(TITLE_END));
