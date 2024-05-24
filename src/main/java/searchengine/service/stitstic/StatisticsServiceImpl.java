@@ -95,8 +95,8 @@ public class StatisticsServiceImpl implements StatisticsService {
         data.setStatus(site.getStatus().toString());
         data.setStatusTime(site.getStatusTime().get(ChronoField.MILLI_OF_SECOND));
         data.setError(site.getLastError());
-        data.setPages(total.getPages());
-        data.setLemmas(total.getLemmas());
+        data.setPages(total.getPages() + pageRepository.countPageBySite(site));
+        data.setLemmas(total.getLemmas() + lemmaRepository.countLemmaBySite(site));
         return data;
     }
 

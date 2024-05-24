@@ -18,26 +18,30 @@ public interface PageRepository extends JpaRepository<Page, Long> {
 
     boolean existsByPathAndSite(String path, Site site);
 
-    @Query(value = """
-                   SELECT *
-                   FROM page AS p
-                   JOIN site s ON p.site_id = s.id
-                   JOIN lemma l ON s.id = l.site_id
-                   WHERE l.id IN :listNonFrequentLemmas
-                   AND p.site_id LIKE :site
-                   """, nativeQuery = true)
-    Set<Page> findFirstByLemmasAndSite(@Param("listNonFrequentLemmas") List<Lemma> listNonFrequentLemmas,
-                                       @Param("site") String site);
+    Integer countPageBySite(Site site);
 
     @Query(value = """
-                    SELECT *
-                   FROM page AS p
-                   JOIN site s ON p.site_id = s.id
-                   JOIN lemma l ON s.id = l.site_id
-                   WHERE l.id IN :listNonFrequentLemmas
-                   AND p.site_id IN :sites
-                   AND p.id IN :pagesToProceed
-                   """, nativeQuery = true)
+            SELECT
+            *
+            FROM page AS p
+            JOIN index i ON i.page_id = p.id
+            JOIN lemma l ON i.lemma_id = l.id
+            WHERE l.id IN :listNonFrequentLemmas
+            AND p.site_id IN :site
+            """, nativeQuery = true)
+    Set<Page> findFirstByLemmasAndSite(@Param("listNonFrequentLemmas") List<Lemma> listNonFrequentLemmas,
+                                       @Param("sites") List<Site> sites);
+
+    @Query(value = """
+            SELECT
+            *
+            FROM page AS p
+            JOIN index i ON i.page_id = p.id
+            JOIN lemma l ON i.lemma_id = l.id
+            WHERE l.id IN :lemma
+            AND p.site_id IN :site
+            AND p.id IN : pagesToProceed
+            """, nativeQuery = true)
     Set<Page> findByOneLemmaAndSitesAndPages(@Param("lemma") Lemma lemma,
                                              @Param("sites") List<Site> sites,
                                              @Param("pagesToProceed") Set<Page> pagesToProceed);

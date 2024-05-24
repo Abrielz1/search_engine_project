@@ -102,7 +102,7 @@ public class SearchingServiceImpl implements SearchingService {
                                     String site) {
     List<Site> sites = findSitesListInDb(site);
     List<Lemma> listNonFrequentLemmas = this.pickNonFrequentLemmas(lemmaList);
-    Set<Page> resultOfProceedPages = pageRepository.findFirstByLemmasAndSite(listNonFrequentLemmas, site);
+    Set<Page> resultOfProceedPages = pageRepository.findFirstByLemmasAndSite(listNonFrequentLemmas, sites);
 
 
         for (Lemma lemma : listNonFrequentLemmas) {
