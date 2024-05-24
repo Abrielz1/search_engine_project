@@ -6,7 +6,6 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import searchengine.model.Lemma;
 import searchengine.model.Site;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -21,8 +20,8 @@ public interface LemmaRepository extends JpaRepository<Lemma, Long> {
     @Query(value = """
                    SELECT *
                    FROM lemma
-                   WHERE 'lemma' IN :lemmaSet
-                   ORDER BY 'frequency'
+                   WHERE lemma IN :lemmasSet
+                   ORDER BY frequency
                    """, nativeQuery = true)
     List<Lemma> findByLemma(@Param("lemmasSet") Set<String> lemmasSet);
 }

@@ -27,10 +27,10 @@ public interface PageRepository extends JpaRepository<Page, Long> {
             JOIN index i ON i.page_id = p.id
             JOIN lemma l ON i.lemma_id = l.id
             WHERE l.id IN :listNonFrequentLemmas
-            AND p.site_id IN :site
+            AND p.site_id IN :sites
             """, nativeQuery = true)
-    Set<Page> findFirstByLemmasAndSite(@Param("listNonFrequentLemmas") List<Lemma> listNonFrequentLemmas,
-                                       @Param("sites") List<Site> sites);
+    Set<Page> getByLemmasAndSite(@Param("listNonFrequentLemmas") List<Lemma> listNonFrequentLemmas,
+                                 @Param("sites") List<Site> sites);
 
     @Query(value = """
             SELECT
@@ -39,8 +39,8 @@ public interface PageRepository extends JpaRepository<Page, Long> {
             JOIN index i ON i.page_id = p.id
             JOIN lemma l ON i.lemma_id = l.id
             WHERE l.id IN :lemma
-            AND p.site_id IN :site
-            AND p.id IN : pagesToProceed
+            AND p.site_id IN :sites
+            AND p.id IN :pagesToProceed
             """, nativeQuery = true)
     Set<Page> findByOneLemmaAndSitesAndPages(@Param("lemma") Lemma lemma,
                                              @Param("sites") List<Site> sites,
