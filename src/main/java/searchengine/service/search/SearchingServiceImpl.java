@@ -112,7 +112,7 @@ public class SearchingServiceImpl implements SearchingService {
     private Set<Page> checkPageInDb(List<Lemma> lemmaList,
                                     String site) {
     List<Site> sites = findSitesListInDb(site);
-    List<Lemma> listNonFrequentLemmas = this.pickNonFrequentLemmas(lemmaList);
+    List<Lemma> listNonFrequentLemmas = this.findNonFrequentLemmas(lemmaList);
     Set<Page> resultOfProceedPages = pageRepository.getByLemmasAndSite(listNonFrequentLemmas,
                                                                                         sites);
 
@@ -149,7 +149,8 @@ public class SearchingServiceImpl implements SearchingService {
                                             Integer from,
                                             Integer size) {
         return responceDataDtoList
-                .subList(from, Math.max(from + size, responceDataDtoList.size()));
+                .subList(from, Math.max(from + size,
+                        responceDataDtoList.size()));
     }
 
     private List<Site> findSitesListInDb(String site) {
@@ -165,11 +166,11 @@ public class SearchingServiceImpl implements SearchingService {
         return sites;
     }
 
-    private List<Lemma> pickNonFrequentLemmas(List<Lemma> lemmaList) {
+    private List<Lemma> findNonFrequentLemmas(List<Lemma> lemmaList) {
         return lemmaList.stream()
                 .filter(frequency->
-                        frequency.getFrequency() < 250).
-                collect(Collectors.toList());
+                        frequency.getFrequency() < 250)
+                .collect(Collectors.toList());
     }
 
     private PageDataDTO collectData(Page page,
@@ -177,18 +178,12 @@ public class SearchingServiceImpl implements SearchingService {
                                     List<Lemma> sortedLemmas) {
         PageDataDTO pageDataDTO = new PageDataDTO();
 
-        String pageText = Jsoup.clean(content, Safelist.relaxed())
-                .replaceAll("&nbsp;", " ")
-                .replaceAll("<[^>]*>", " ")
-                .replaceAll("https?://[\\w\\W]\\S+", "")
-                .replaceAll("\\s*\\n+\\s*", " · ");
-
         pageDataDTO.setSite(page.getSite().getUrl());
         pageDataDTO.setUri(page.getPath());
         pageDataDTO.setSiteName(page.getSite().getName());
         pageDataDTO.setTitle(this.findTitle(content));
         pageDataDTO.setRelevance(this.getRelevance(page));
-        pageDataDTO.setSnippet(snippetManipulator.createSnippet(pageText,
+        pageDataDTO.setSnippet(snippetManipulator.createSnippet(this.pageProceed(content),
                                                                 sortedLemmas));
 
         return pageDataDTO;
@@ -199,18 +194,28 @@ public class SearchingServiceImpl implements SearchingService {
            maxRelevance = indexRepository.getMaxIndex();
        }
 
-        return indexRepository.getReference(page, maxRelevance);
+        return indexRepository.getReference(page,
+                                            maxRelevance);
     }
 
     private String findTitle(String content) {
-        String TITLE_START = "<title>";
-        String TITLE_END = "</title>";
-        if (content.contains(TITLE_START) && content.contains(TITLE_END)) {
-            return content.substring(content.indexOf(TITLE_START) + TITLE_START.length(),
-                    content.indexOf(TITLE_END));
+
+        if (content.contains("<title>") && content.contains("</title>")) {
+
+            return content.substring(content.indexOf("<title>") + "<title>".length(),
+                                     content.indexOf("</title>"));
         } else {
+
             return null;
         }
+    }
+
+    private String pageProceed(String page) {
+        return Jsoup.clean(page, Safelist.relaxed())
+                .replaceAll("&nbsp;", " ")
+                .replaceAll("<[^>]*>", " ")
+                .replaceAll("https?://[\\w\\W]\\S+", "")
+                .replaceAll("\\s*\\n+\\s*", " · ");
     }
 }
 
