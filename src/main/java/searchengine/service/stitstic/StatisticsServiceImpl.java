@@ -46,7 +46,8 @@ public class StatisticsServiceImpl implements StatisticsService {
     public StatisticsResponse getStatistics() {
 
         return responseManipulator(this.totalStatisticsManipulator(),
-                this.detailedStatisticsItemManipulator(sites, this.totalStatisticsManipulator()));
+                                   this.detailedStatisticsItemManipulator(sites,
+                                                                          this.totalStatisticsManipulator()));
     }
 
     private StatisticsResponse responseManipulator(TotalStatistics total,

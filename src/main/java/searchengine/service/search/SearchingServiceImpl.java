@@ -73,9 +73,9 @@ public class SearchingServiceImpl implements SearchingService {
         }
 
         return this.searchResponse(lemmaList,
-                site,
-                from,
-                size);
+                                   site,
+                                   from,
+                                   size);
     }
 
     private boolean siteChecker(String site) {
@@ -95,16 +95,16 @@ public class SearchingServiceImpl implements SearchingService {
                                              Integer size) {
     SearchResponseDTO response = new SearchResponseDTO();
     Set<Page> setPagesInDb = this.checkPageInDb(lemmaList,
-                                                 site);
+                                                site);
     List<PageDataDTO> responceDataDtoList = this.createResponceDataDtoList(lemmaList,
-                                                                            setPagesInDb);
+                                                                           setPagesInDb);
 
         response.setResult(true);
         response.setError(null);
         response.setCount(responceDataDtoList.size());
         response.setData(this.getListOfData(responceDataDtoList,
-                                                            from,
-                                                            size));
+                                            from,
+                                            size));
 
         return response;
     }
@@ -134,7 +134,9 @@ public class SearchingServiceImpl implements SearchingService {
 
         for (Page page: setPagesInDb) {
             String pageContent = page.getContent();
-            PageDataDTO newData = this.collectData(page, pageContent, lemmaList);
+            PageDataDTO newData = this.collectData(page,
+                                                   pageContent,
+                                                   lemmaList);
             resultList.add(newData);
         }
 
@@ -186,7 +188,8 @@ public class SearchingServiceImpl implements SearchingService {
         pageDataDTO.setSiteName(page.getSite().getName());
         pageDataDTO.setTitle(this.findTitle(content));
         pageDataDTO.setRelevance(this.getRelevance(page));
-        pageDataDTO.setSnippet(snippetManipulator.createSnippet(pageText, sortedLemmas));
+        pageDataDTO.setSnippet(snippetManipulator.createSnippet(pageText,
+                                                                sortedLemmas));
 
         return pageDataDTO;
     }
