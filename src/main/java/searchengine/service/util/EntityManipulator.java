@@ -53,7 +53,8 @@ public class EntityManipulator {
     private final LemmaFinder lemmaFinder;
 
     @Transactional
-    public void setFailedStateSite(String url, String message) {
+    public void setFailedStateSite(String url,
+                                   String message) {
 
         Site siteFromDb = this.siteChecker(url);
         siteFromDb.setStatus(FAILED);
@@ -72,7 +73,10 @@ public class EntityManipulator {
     }
 
     @Transactional
-    public void checkSiteAndSavePageToDb(Document document, Site site, String path) {
+    public void checkSiteAndSavePageToDb(Document document,
+                                         Site site,
+                                         String path) {
+
         Site siteFromDb = this.siteChecker(site.getUrl());
 
         if (siteFromDb != null) {
@@ -81,20 +85,28 @@ public class EntityManipulator {
             siteRepository.saveAndFlush(siteFromDb);
         }
 
-        Page page = checkPage(document, site, path);
+        Page page = checkPage(document,
+                              site,
+                              path);
+
         if (page.getCode() < 220) {
             this.savePageInBd(page);
             this.proceedLemmasAndIndexes(page);
         }
     }
 
-    private synchronized Page checkPage(Document document, Site site, String path) {
+    private synchronized Page checkPage(Document document,
+                                        Site site,
+                                        String path) {
         log.error("страницы нет!");
         return pageRepository.findFirstByPathAndSite(this.urlVerification(path, site), site).orElseGet(()
                 -> this.createPage(document, site, path));
     }
 
-    private Page createPage(Document document, Site site, String path) {
+    private Page createPage(Document document,
+                            Site site,
+                            String path) {
+
         Page newPage = new Page();
         newPage.setCode(document.connection().response().statusCode());
         newPage.setPath(this.urlVerification(path, site));
@@ -104,7 +116,9 @@ public class EntityManipulator {
         return newPage;
     }
 
-    public String urlVerification(String url, Site site) {
+    public String urlVerification(String url,
+                                  Site site) {
+
         return url.equals(site.getUrl()) ? "/"
                 : url.replace(site.getUrl(), "");
     }
@@ -241,6 +255,7 @@ public class EntityManipulator {
     private Index createindex(Lemma lemma,
                               Page page,
                               float rank) {
+
         Index newIndex = new Index();
         newIndex.setLemma(lemma);
         newIndex.setPage(page);

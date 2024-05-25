@@ -101,7 +101,7 @@ public class IndexingServiceImpl implements IndexingService {
         try {
             if (manipulator.urlChecker(url)) {
                 response.setResult(true);
-              new  Thread(() -> pageScrubber.siteScrubber(url)).start();
+                new  Thread(() -> pageScrubber.siteScrubber(url)).start();
 
             } else {
                 response.setResult(false);
