@@ -60,15 +60,12 @@ public class LemmaFinderImpl implements LemmaFinder {
     @Override
     public Set<String> getLemmaSet(String text) {
         Set<String> lemmasSet = new HashSet<>();
-        String[] strings = stringManipulator(text);
+        String[] strings = this.stringManipulator(text);
 
-        for (String i: strings) {
-            if (isWrongWord(i)) {
-                continue;
-            }
+        for (String word: strings) {
+            List<String> normalWordForms = luceneMorphology.getNormalForms(word);
 
-          List<String> normalWordForms = luceneMorphology.getNormalForms(i);
-            if (normalWordForms.isEmpty()) {
+            if (isWrongWord(word) && normalWordForms.isEmpty()) {
                 continue;
             }
 
@@ -81,7 +78,27 @@ public class LemmaFinderImpl implements LemmaFinder {
     @Override
     public Map<String, Set<String>> collectLemmasAndWords(String text) {
         Map<String, Set<String>> mapLemmasAndWords = new HashMap<>();
+        String[] split = this.stringManipulator(text);
+        for (String word : split) {
 
+            List<String> normalWordForms = luceneMorphology.getNormalForms(word);
+
+            if (isWrongWord(word) && normalWordForms.isEmpty()) {
+                continue;
+            }
+
+            String form = normalWordForms.get(0);
+
+            if (mapLemmasAndWords.containsKey(form)) {
+                Set<String> temp = new HashSet<>(mapLemmasAndWords.get(form));
+                temp.add(form);
+                mapLemmasAndWords.put(form, temp);
+            } else {
+                mapLemmasAndWords.put(form, new HashSet<>() {{
+                    add(form);
+                }});
+            }
+        }
         return mapLemmasAndWords;
     }
 
