@@ -31,11 +31,9 @@ public class LemmaFinderImpl implements LemmaFinder {
 
     @Override
     public Map<String, Integer> collectLemmas(String text) {
-
-        String[] strings = stringManipulator(text);
         Map<String, Integer> lemmas = new HashMap<>();
 
-        for (String word : strings) {
+        for (String word : stringManipulator(text)) {
             if (isWrongWord(word)) {
                 continue;
             }
@@ -60,9 +58,8 @@ public class LemmaFinderImpl implements LemmaFinder {
     @Override
     public Set<String> getLemmaSet(String text) {
         Set<String> lemmasSet = new HashSet<>();
-        String[] strings = this.stringManipulator(text);
 
-        for (String word: strings) {
+        for (String word: this.stringManipulator(text)) {
             List<String> normalWordForms = luceneMorphology.getNormalForms(word);
 
             if (isWrongWord(word) && normalWordForms.isEmpty()) {
@@ -78,8 +75,8 @@ public class LemmaFinderImpl implements LemmaFinder {
     @Override
     public Map<String, Set<String>> collectLemmasAndWords(String text) {
         Map<String, Set<String>> mapLemmasAndWords = new HashMap<>();
-        String[] split = this.stringManipulator(text);
-        for (String word : split) {
+
+        for (String word : this.stringManipulator(text)) {
 
             List<String> normalWordForms = luceneMorphology.getNormalForms(word);
 
@@ -87,15 +84,13 @@ public class LemmaFinderImpl implements LemmaFinder {
                 continue;
             }
 
-            String form = normalWordForms.get(0);
-
-            if (mapLemmasAndWords.containsKey(form)) {
-                Set<String> temp = new HashSet<>(mapLemmasAndWords.get(form));
-                temp.add(form);
-                mapLemmasAndWords.put(form, temp);
+            if (mapLemmasAndWords.containsKey(normalWordForms.get(0))) {
+                Set<String> temp = new HashSet<>(mapLemmasAndWords.get(normalWordForms.get(0)));
+                temp.add(normalWordForms.get(0));
+                mapLemmasAndWords.put(normalWordForms.get(0), temp);
             } else {
-                mapLemmasAndWords.put(form, new HashSet<>() {{
-                    add(form);
+                mapLemmasAndWords.put(normalWordForms.get(0), new HashSet<>() {{
+                    add(normalWordForms.get(0));
                 }});
             }
         }
