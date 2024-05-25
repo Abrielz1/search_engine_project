@@ -23,40 +23,45 @@ public class SnippetManipulator {
 
     private final int SNIPPET_LENGTH = 240;
 
-    String THREE_DOTS = " ...";
-
     public String createSnippet(String pageText,
                                 List<Lemma> sortedLemmas) {
 
-        String[] textArray = pageText.split("\\s");
+        String[] textArray = pageText.split("\\s+");
         StringBuilder resultText = new StringBuilder();
         Map<String, Set<String>> mapOfLemmasAndForms = lemmaFinder.collectLemmasAndWords(pageText);
+
         for (String word : textArray) {
+
             for (Lemma lemma : sortedLemmas) {
                 word = this.checkWord(word,
                         lemma.getLemma(),
                         mapOfLemmasAndForms);
             }
+
             resultText.append(word).append(" ");
         }
 
-        return this.snippedFinalizer(resultText.toString().concat(THREE_DOTS));
+        return this.snippedFinalizer(resultText.toString().concat(" ..."));
     }
 
     private String checkWord(String word,
                              String lemma,
                              Map<String, Set<String>> mapOfLemmasAndForms) {
-        String[] splitWord = word.split("\\s");
-        for (String i : splitWord) {
+        String[] splitWord = word.split("\\s+");
+
+        for (String proceedWord : splitWord) {
+
             if (mapOfLemmasAndForms.get(lemma) == null) {
                 return word;
             }
+
             if (mapOfLemmasAndForms.get(lemma).stream()
-                    .anyMatch(i
-                            .replaceAll("Ё", "е")
-                            .replaceAll("Ё", "е")
-                            ::equalsIgnoreCase)) {
-                word = word.replace(i, START_TAG.concat(i).concat(END_TAG));
+                                               .anyMatch(proceedWord
+                                               .replaceAll("Ё", "е")
+                                               .replaceAll("Ё", "е")
+                                               ::equalsIgnoreCase)) {
+
+                word = word.replace(proceedWord, START_TAG.concat(proceedWord).concat(END_TAG));
             }
         }
 
@@ -65,20 +70,21 @@ public class SnippetManipulator {
 
     private String snippedFinalizer(String resultText) {
         String snippet = "";
-        int tagsLength = START_TAG.length() + END_TAG.length();
-        String regex = "</?b>";
         Integer startIndex = this.startIndexOfTextFinder(resultText);
+
         String text = resultText.substring(startIndex,
                 resultText.length() - 1);
-        String rawText = text.replace(regex, "")
+
+        String rawText = text.replace("</?b>", "")
                 .substring(0, SNIPPET_LENGTH);
+
         int tagsCounter = StringUtils.countOccurrencesOf(resultText, START_TAG);
 
         for (int i = tagsCounter; i >= 1; i--) {
-            int end = text.indexOf(" ", SNIPPET_LENGTH + i * tagsLength);
+            int end = text.indexOf(" ", SNIPPET_LENGTH + i * (START_TAG.length() + END_TAG.length()));
             snippet = text.substring(0, end);
 
-            if (snippet.replaceAll(regex, "").length() < rawText.length()) {
+            if (snippet.replaceAll("</?b>", "").length() < rawText.length()) {
                 break;
             }
         }

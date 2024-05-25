@@ -199,7 +199,6 @@ public class SearchingServiceImpl implements SearchingService {
     }
 
     private String findTitle(String content) {
-
         if (content.contains("<title>") && content.contains("</title>")) {
 
             return content.substring(content.indexOf("<title>") + "<title>".length(),
@@ -210,8 +209,8 @@ public class SearchingServiceImpl implements SearchingService {
         }
     }
 
-    private String pageProceed(String page) {
-        return Jsoup.clean(page, Safelist.relaxed())
+    private String pageProceed(String content) {
+        return Jsoup.clean(content, Safelist.relaxed())
                 .replaceAll("&nbsp;", " ")
                 .replaceAll("<[^>]*>", " ")
                 .replaceAll("https?://[\\w\\W]\\S+", "")
