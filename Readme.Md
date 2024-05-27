@@ -61,3 +61,13 @@ You can choose the site you want to get pages from in the drop-down list above.
 
 ## DataBase scema:
 ![schema1](https://github.com/Abrielz1/search_engine_project/blob/search_engine_db_scema.png)
+
+## How to run Application
+
+1. go to path to directory of project: \search_engine_project\docker
+
+2. open terminal in that catalog and type: **_docker-compose up -d_**
+
+3. then in terminal type: **_mvn clean package_**
+
+4. And at last type: **_java -jar "-Dserver.port=8089" ./target/search-engine-1.0-SNAPSHOT.jar_**
