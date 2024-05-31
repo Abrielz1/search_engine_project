@@ -198,7 +198,8 @@ public class EntityManipulator {
     }
 
 
-    public String urlChecker(String url, Site  site) {
+    public String urlChecker(String url,
+                             Site  site) {
         return url.equals(site.getUrl()) ? "/"
                 : url.replace(site.getUrl(), "");
     }
@@ -224,7 +225,8 @@ public class EntityManipulator {
                 return;
             }
 
-            Lemma newLemma = this.createLemma(lemma, page);
+            Lemma newLemma = this.createLemma(lemma,
+                                              page);
             lemmas.add(newLemma);
             indices.add(this.createindex(newLemma,
                                          page,

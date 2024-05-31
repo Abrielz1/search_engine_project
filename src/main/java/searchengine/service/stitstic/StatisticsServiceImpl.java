@@ -94,7 +94,8 @@ public class StatisticsServiceImpl implements StatisticsService {
         return statisticsItems;
     }
 
-    private DetailedStatisticsItem createStatisticsData(Site site, TotalStatistics total) {
+    private DetailedStatisticsItem createStatisticsData(Site site,
+                                                        TotalStatistics total) {
         DetailedStatisticsItem data = new DetailedStatisticsItem();
         data.setUrl(site.getUrl());
         data.setName(site.getName());

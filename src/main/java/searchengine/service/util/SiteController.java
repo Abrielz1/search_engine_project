@@ -55,7 +55,8 @@ public class SiteController {
     }
 
 
-    private void setFailedStatus(String url, Exception exception) {
+    private void setFailedStatus(String url,
+                                 Exception exception) {
 
         Site siteFromBd = siteRepository.findFirstByUrl(url).orElseThrow(() -> {
 

@@ -70,7 +70,9 @@ public class SiteScrubber extends RecursiveAction {
         Document document;
         try {
             document = siteController.accessSite(site.getUrl().concat(path));
-            manipulator.checkSiteAndSavePageToDb(document, site, path);
+            manipulator.checkSiteAndSavePageToDb(document,
+                                                 site,
+                                                 path);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -98,12 +100,13 @@ public class SiteScrubber extends RecursiveAction {
 
     private SiteScrubber createSiteScrubberThread(String url) {
 
-        String path = manipulator.urlChecker(url, site);
+        String path = manipulator.urlChecker(url,
+                                             site);
         return new SiteScrubber(site,
-                path,
-                settings,
-                siteRepository,
-                pageRepository,
-                manipulator);
+                                path,
+                                settings,
+                                siteRepository,
+                                pageRepository,
+                                manipulator);
     }
 }

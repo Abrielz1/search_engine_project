@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import searchengine.model.Lemma;
 import searchengine.service.indexing.LemmaFinder;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -31,7 +32,6 @@ public class SnippetManipulator {
         Map<String, Set<String>> mapOfLemmasAndForms = lemmaFinder.collectLemmasAndWords(pageText);
 
         for (String word : textArray) {
-
             for (Lemma lemma : sortedLemmas) {
                 word = this.checkWord(word,
                         lemma.getLemma(),
@@ -56,12 +56,13 @@ public class SnippetManipulator {
             }
 
             if (mapOfLemmasAndForms.get(lemma).stream()
-                                               .anyMatch(proceedWord
-                                               .replaceAll("Ё", "е")
-                                               .replaceAll("Ё", "е")
-                                               ::equalsIgnoreCase)) {
+                    .anyMatch(proceedWord
+                            .replaceAll("Ё", "е")
+                            .replaceAll("Ё", "е")
+                            ::equalsIgnoreCase)) {
 
-                word = word.replace(proceedWord, START_TAG.concat(proceedWord).concat(END_TAG));
+                word = word.replace(proceedWord,
+                        START_TAG.concat(proceedWord).concat(END_TAG));
             }
         }
 
@@ -78,7 +79,8 @@ public class SnippetManipulator {
         String rawText = text.replace("</?b>", "")
                 .substring(0, SNIPPET_LENGTH);
 
-        int tagsCounter = StringUtils.countOccurrencesOf(resultText, START_TAG);
+        int tagsCounter = StringUtils.countOccurrencesOf(resultText,
+                START_TAG);
 
         for (int i = tagsCounter; i >= 1; i--) {
             int end = text.indexOf(" ", SNIPPET_LENGTH + i * (START_TAG.length() + END_TAG.length()));
