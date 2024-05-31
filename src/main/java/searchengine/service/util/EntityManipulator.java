@@ -36,7 +36,6 @@ import static searchengine.model.enums.SiteStatus.INDEXED;
 @Getter
 @Setter
 @Service
-@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class EntityManipulator {
 

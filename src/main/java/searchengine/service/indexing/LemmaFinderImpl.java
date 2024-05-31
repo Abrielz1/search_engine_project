@@ -34,7 +34,7 @@ public class LemmaFinderImpl implements LemmaFinder {
         Map<String, Integer> lemmas = new HashMap<>();
 
         for (String word : stringManipulator(text)) {
-            if (isWrongWord(word)) {
+            if (this.isWrongWord(word)) {
                 continue;
             }
 
@@ -99,9 +99,9 @@ public class LemmaFinderImpl implements LemmaFinder {
 
     private String[] stringManipulator(String text) {
         return text.toLowerCase(Locale.ROOT)
-                .replaceAll("Ё", "Е")
                 .replaceAll("ё", "е")
-                .replaceAll("([^а-я]\\s])", " ")
+                .replaceAll("Ё", "Е")
+                .replaceAll("([^а-я\\s])", " ")
                 .trim()
                 .split("\\s+");
     }

@@ -123,7 +123,6 @@ public class IndexingServiceImpl implements IndexingService {
         pool = new ForkJoinPool();
         List<Thread> threads = new ArrayList<>();
         List<Site> siteList = siteRepository.findAll();
-        int tread = 0;
 
         for (Site site : siteList) {
             threads.add(new Thread(() -> {
@@ -135,7 +134,7 @@ public class IndexingServiceImpl implements IndexingService {
                         manipulator));
 
                 this.setSitesIndexedStatus(site);
-            }, "tread" + tread++));
+            }));
         }
         threads.forEach(Thread::start);
     }
