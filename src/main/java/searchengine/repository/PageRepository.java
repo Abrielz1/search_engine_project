@@ -21,8 +21,7 @@ public interface PageRepository extends JpaRepository<Page, Long> {
     Integer countPageBySite(Site site);
 
     @Query(value = """
-            SELECT
-            *
+            SELECT *
             FROM page AS p
             JOIN index i ON i.page_id = p.id
             JOIN lemma l ON i.lemma_id = l.id
@@ -32,16 +31,16 @@ public interface PageRepository extends JpaRepository<Page, Long> {
     Set<Page> getByLemmasAndSite(@Param("listNonFrequentLemmas") List<Lemma> listNonFrequentLemmas,
                                  @Param("sites") List<Site> sites);
 
+
     @Query(value = """
-            SELECT
-            *
+            SELECT *
             FROM page AS p
-            JOIN index i ON i.page_id = p.id
+            JOIN index i ON i.page_id = p. id
             JOIN lemma l ON i.lemma_id = l.id
-            WHERE l.id IN :lemma
-            AND p.site_id IN :sites
-            AND p.id IN :pagesToProceed
-            """, nativeQuery = true)
+                WHERE l.id = :lemma
+                 AND p.site_id IN :sites
+                 AND p.id IN :pagesToProceed
+                    """, nativeQuery = true)
     Set<Page> findByOneLemmaAndSitesAndPages(@Param("lemma") Lemma lemma,
                                              @Param("sites") List<Site> sites,
                                              @Param("pagesToProceed") Set<Page> pagesToProceed);

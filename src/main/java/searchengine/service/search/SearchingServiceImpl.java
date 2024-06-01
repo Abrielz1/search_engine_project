@@ -148,9 +148,14 @@ public class SearchingServiceImpl implements SearchingService {
     private List<PageDataDTO> getListOfData(List<PageDataDTO> responceDataDtoList,
                                             Integer from,
                                             Integer size) {
-        return responceDataDtoList
-                .subList(from, Math.max(from + size,
-                        responceDataDtoList.size()));
+        int limit = from + size;
+
+//        return responceDataDtoList
+//                .subList(from, Math.min(from + size,
+//                        responceDataDtoList.size()));
+
+        List<PageDataDTO> returnList = responceDataDtoList.subList(from, Math.min(limit, responceDataDtoList.size()));
+        return returnList;
     }
 
     private List<Site> findSitesListInDb(String site) {

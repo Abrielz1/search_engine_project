@@ -77,8 +77,8 @@ public class ApiController {
     @ResponseStatus(HttpStatus.OK)
     public SearchResponseDTO search(@NotBlank @RequestParam String query,
                                     @RequestParam(required = false) String site,
-                                    @Positive @RequestParam(defaultValue = "0") Integer from,
-                                    @PositiveOrZero @RequestParam(defaultValue = "20") Integer size) {
+                                    @RequestParam(defaultValue = "0") Integer from,
+                                    @RequestParam (defaultValue = "20") Integer size) {
 
         log.info("\nQuery with: %s was sent via controller at time: ".formatted(query)
                 + LocalDateTime.now() + "\n");
