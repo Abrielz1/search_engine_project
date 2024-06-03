@@ -99,7 +99,7 @@ public class SearchingServiceImpl implements SearchingService {
                                                 site);
 
         if (CollectionUtils.isEmpty(setPagesInDb)) {
-            response.setError("ошибка");
+            response.setError("Слова в запросе встречаются слишком часто, попробуйте уточнить запрос подробнее");
             return response;
         }
 
