@@ -6,6 +6,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 import searchengine.config.SitesList;
 import searchengine.dto.page.PageDataDTO;
 import searchengine.dto.page.SearchResponseDTO;
@@ -89,22 +90,31 @@ public class SearchingServiceImpl implements SearchingService {
         return lemmaFinder.getSortedLemmasSetFromDbAversSorted(lemmasSet);
     }
 
-    private SearchResponseDTO searchResponse(List<Lemma> lemmaList,
+    private SearchResponseDTO searchResponse(List<Lemma> sortedLemmas,
                                              String site,
                                              Integer from,
                                              Integer size) {
     SearchResponseDTO response = new SearchResponseDTO();
-    Set<Page> setPagesInDb = this.checkPageInDb(lemmaList,
+    Set<Page> setPagesInDb = this.checkPageInDb(sortedLemmas,
                                                 site);
-    List<PageDataDTO> responceDataDtoList = this.createResponceDataDtoList(lemmaList,
+
+        if (CollectionUtils.isEmpty(setPagesInDb)) {
+            response.setError("ошибка");
+            return response;
+        }
+
+    List<PageDataDTO> responseDataDtoList = this.createResponseDataDtoList(sortedLemmas,
                                                                            setPagesInDb);
 
+        response.setCount(responseDataDtoList.size());
         response.setResult(true);
         response.setError(null);
-        response.setCount(responceDataDtoList.size());
-        response.setData(this.getListOfData(responceDataDtoList,
+        response.setData(this.getListOfData(responseDataDtoList,
+                                            sortedLemmas.size(),
                                             from,
                                             size));
+
+
 
         return response;
     }
@@ -114,7 +124,7 @@ public class SearchingServiceImpl implements SearchingService {
     List<Site> sites = findSitesListInDb(site);
     List<Lemma> listNonFrequentLemmas = this.findNonFrequentLemmas(lemmaList);
     Set<Page> resultOfProceedPages = pageRepository.getByLemmasAndSite(listNonFrequentLemmas,
-                                                                                        sites);
+                                                                       sites);
 
 
         for (Lemma lemma : listNonFrequentLemmas) {
@@ -128,7 +138,7 @@ public class SearchingServiceImpl implements SearchingService {
     return resultOfProceedPages;
     }
 
-    private List<PageDataDTO> createResponceDataDtoList(List<Lemma> lemmaList,
+    private List<PageDataDTO> createResponseDataDtoList(List<Lemma> lemmaList,
                                                         Set<Page> setPagesInDb) {
     List<PageDataDTO> resultList = new ArrayList<>();
 
@@ -146,12 +156,13 @@ public class SearchingServiceImpl implements SearchingService {
     }
 
     private List<PageDataDTO> getListOfData(List<PageDataDTO> responceDataDtoList,
+                                            Integer lemmaListSize,
                                             Integer from,
                                             Integer size) {
 
-        return responceDataDtoList.subList(from + size,
+        return responceDataDtoList.subList(from,
                 Math.min(from + size,
-                        responceDataDtoList.size()));
+                        lemmaListSize));
     }
 
     private List<Site> findSitesListInDb(String site) {
