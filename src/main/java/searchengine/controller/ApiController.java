@@ -19,8 +19,6 @@ import searchengine.service.indexing.IndexingService;
 import searchengine.service.search.SearchingService;
 import searchengine.service.stitstic.StatisticsService;
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Positive;
-import javax.validation.constraints.PositiveOrZero;
 import java.time.LocalDateTime;
 
 @Slf4j
