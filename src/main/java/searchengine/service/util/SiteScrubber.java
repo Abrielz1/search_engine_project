@@ -103,10 +103,10 @@ public class SiteScrubber extends RecursiveAction {
 
     private SiteScrubber createSiteScrubberThread(String url) {
 
-        String path = manipulator.urlChecker(url,
-                                             site);
         return new SiteScrubber(site,
-                                path,
+                manipulator.urlChecker(
+                                url,
+                                site),
                                 settings,
                                 siteRepository,
                                 pageRepository,
