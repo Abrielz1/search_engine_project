@@ -7,6 +7,7 @@ import org.jsoup.nodes.Document;
 import org.springframework.stereotype.Service;
 import searchengine.model.Site;
 import java.io.IOException;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -21,14 +22,12 @@ public class PageScrubber {
             Document document = Jsoup.connect(url).get();
             String tempUrl = url;
             tempUrl = url.endsWith("/") ? manipulator.removeLastDash(url) : tempUrl;
-            Site siteFromDb = manipulator.siteChecker(tempUrl);
 
-            if (siteFromDb != null) {
-                manipulator.checkSiteAndSavePageToDb(
-                        document,
-                        siteFromDb,
-                        url.replace(siteFromDb.getUrl(), ""));
-            }
+            Optional<Site> siteFromDb = manipulator.findSiteByUrl(tempUrl);
+            siteFromDb.ifPresent(site -> manipulator.checkSiteAndSavePageToDb(
+                    document,
+                    site,
+                    url.replace(site.getUrl(), "")));
 
         } catch (IOException ex) {
             String message = "Страницу " + url + " проиндексировать не удалось";

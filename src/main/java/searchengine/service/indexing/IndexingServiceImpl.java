@@ -101,17 +101,15 @@ public class IndexingServiceImpl implements IndexingService {
         try {
             if (manipulator.urlChecker(url)) {
                 response.setResult(true);
-                new  Thread(() -> pageScrubber.siteScrubber(url)).start();
+                new Thread(() -> pageScrubber.siteScrubber(url)).start();
 
-            } else {
-                response.setResult(false);
-                response.setError("Индексация не запущена");
+                return response;
             }
         } catch (IOException exception) {
             exception.printStackTrace();
-            response.setError("Данная страница находится за пределами сайтов, " +
-                    "указанных в конфигурационном файле");
         }
+        response.setError("Данная страница находится за пределами сайтов, " +
+                "указанных в конфигурационном файле");
 
         return response;
     }

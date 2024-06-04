@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import searchengine.config.SiteConfig;
 import searchengine.config.SitesList;
-import searchengine.exception.exceptions.ObjectNotFoundException;
 import searchengine.model.Index;
 import searchengine.model.Lemma;
 import searchengine.model.Page;
@@ -29,6 +28,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+
 import static searchengine.model.enums.SiteStatus.FAILED;
 import static searchengine.model.enums.SiteStatus.INDEXED;
 
@@ -55,7 +55,7 @@ public class EntityManipulator {
     public void setFailedStateSite(String url,
                                    String message) {
 
-        Site siteFromDb = this.siteChecker(url);
+        Site siteFromDb = this.siteChecker(url).orElseThrow();
         siteFromDb.setStatus(FAILED);
         siteFromDb.setLastError(message);
         siteFromDb.setStatusTime(LocalDateTime.now());
@@ -63,12 +63,8 @@ public class EntityManipulator {
         siteRepository.saveAndFlush(siteFromDb);
     }
 
-    public Site siteChecker(String url) {
-        return siteRepository.findFirstByUrl(url).orElseThrow(() -> {
-
-            log.error("По ссылке: %s сайта нет!".formatted(url));
-            return new ObjectNotFoundException("По ссылке: %s сайта нет!".formatted(url));
-        });
+    public Optional<Site> siteChecker(String url) {
+        return siteRepository.findFirstByUrl(url);
     }
 
     @Transactional
@@ -76,12 +72,12 @@ public class EntityManipulator {
                                          Site site,
                                          String path) {
 
-        Site siteFromDb = this.siteChecker(site.getUrl());
+        Optional<Site> siteFromDb = this.siteChecker(site.getUrl());
 
-        if (siteFromDb != null) {
-            siteFromDb.setLastError(null);
-            siteFromDb.setStatusTime(LocalDateTime.now());
-            siteRepository.saveAndFlush(siteFromDb);
+        if (siteFromDb.isPresent()) {
+            siteFromDb.get().setLastError(null);
+            siteFromDb.get().setStatusTime(LocalDateTime.now());
+            siteRepository.saveAndFlush(siteFromDb.get());
         }
 
         Page page = checkPage(document,
@@ -263,5 +259,12 @@ public class EntityManipulator {
         newIndex.setRank(rank);
 
         return newIndex;
+    }
+
+    public Optional<Site> findSiteByUrl(String url) {
+        return siteRepository.findAll()
+                .stream()
+                .filter(s-> s.getUrl().equals(url))
+                .findFirst();
     }
 }
