@@ -71,13 +71,14 @@ public class SiteScrubber extends RecursiveAction {
         Document document;
         try {
             document = siteController.accessSite(site.getUrl().concat(path));
-
-            manipulator.checkSiteAndSavePageToDb(document,
-                    site,
-                    path);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+
+        manipulator.checkSiteAndSavePageToDb(document,
+                site,
+                path);
+
         return document;
     }
 
