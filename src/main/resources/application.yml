@@ -19,12 +19,12 @@ spring:
 
 indexing-settings:
   sites:
-    - url: https://lenta.ru
-      name: Лента.ру
-    - url: https://volochek.life
-      name: Volochek
-#    - url: https://www.svetlovka.ru
-#      name: Svetlovka
+#    - url: https://lenta.ru
+#      name: Лента.ру
+#    - url: https://volochek.life
+#      name: Volochek
+    - url: https://www.svetlovka.ru
+      name: Svetlovka
 #    - url: https://www.playback.ru
 #      name: PlayBack.Ru
 jsoup-settings:
