@@ -57,6 +57,10 @@ public class SiteScrubber extends RecursiveAction {
         }
 
         Document document = this.documentGetter();
+        manipulator.checkSiteAndSavePageToDb(document,
+                site,
+                path);
+
         Set<SiteScrubber> threadPool = ConcurrentHashMap.newKeySet();
         Set<String> setUrlsToScan = this.getUrls(document);
         for (String urlToScan : setUrlsToScan) {
@@ -70,9 +74,6 @@ public class SiteScrubber extends RecursiveAction {
         Document document;
         try {
             document = siteController.accessSite(site.getUrl().concat(path));
-            manipulator.checkSiteAndSavePageToDb(document,
-                                                 site,
-                                                 path);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

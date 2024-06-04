@@ -5,11 +5,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import searchengine.config.JsoupSettings;
-import searchengine.exception.exceptions.ObjectNotFoundException;
 import searchengine.model.Site;
 import searchengine.repository.SiteRepository;
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.concurrent.Semaphore;
 import static searchengine.model.enums.SiteStatus.FAILED;
 
@@ -40,7 +40,8 @@ public class SiteController {
                 .ignoreHttpErrors(true)
                 .ignoreContentType(true)
                 .followRedirects(false)
-                .timeout(10_000).get();
+                .timeout(10_000)
+                .get();
         try {
         Thread.sleep(1000);
         } catch (InterruptedException exception) {
@@ -54,21 +55,17 @@ public class SiteController {
         return pageContent;
     }
 
-
     private void setFailedStatus(String url,
                                  Exception exception) {
 
-        Site siteFromBd = siteRepository.findFirstByUrl(url).orElseThrow(() -> {
+        Optional<Site> siteFromBd = siteRepository.findFirstByUrl(url);
+        if (siteFromBd.isPresent()) {
+            siteFromBd.get().setStatusTime(LocalDateTime.now());
+            siteFromBd.get().setLastError(String.format("При индексации сайта: %s возникла ошибка: %s", url, exception.toString()));
+            siteFromBd.get().setStatus(FAILED);
 
-            log.error("");
-            return new ObjectNotFoundException("сайта нет!");
-        });
-
-        siteFromBd.setStatusTime(LocalDateTime.now());
-        siteFromBd.setLastError(String.format("При индексации сайта: %s возникла ошибка: %s", url, exception.toString()));
-        siteFromBd.setStatus(FAILED);
-
-        log.info("сайт %s со статусом FAILED сохранён".formatted(url));
-        siteRepository.saveAndFlush(siteFromBd);
+            siteRepository.saveAndFlush(siteFromBd.get());
+            log.info("сайт %s со статусом FAILED сохранён".formatted(url));
+        }
     }
 }

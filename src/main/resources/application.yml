@@ -23,12 +23,10 @@ indexing-settings:
       name: Лента.ру
     - url: https://volochek.life
       name: Volochek
-    - url: https://www.svetlovka.ru
-      name: Svetlovka
-    - url: https://www.playback.ru
-      name: PlayBack.Ru
-    - url: https://volochek.life
-      name: Volochek
+#    - url: https://www.svetlovka.ru
+#      name: Svetlovka
+#    - url: https://www.playback.ru
+#      name: PlayBack.Ru
 jsoup-settings:
   user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36
   referrer: http://www.google.com
