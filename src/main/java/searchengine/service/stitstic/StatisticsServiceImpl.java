@@ -21,7 +21,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import static searchengine.model.enums.SiteStatus.INDEXED;
+import static searchengine.model.enums.SiteStatus.INDEXING;
 
 @Slf4j
 @Service
@@ -112,7 +112,7 @@ public class StatisticsServiceImpl implements StatisticsService {
         Site siteToSave = new Site();
         siteToSave.setUrl(manipulator.removeLastDash(site.getUrl()));
         siteToSave.setName(site.getName());
-        siteToSave.setStatus(INDEXED);
+        siteToSave.setStatus(siteToSave.getStatus() == null ? INDEXING : siteToSave.getStatus());
         siteToSave.setLastError(null);
         siteToSave.setStatusTime(LocalDateTime.now());
 
