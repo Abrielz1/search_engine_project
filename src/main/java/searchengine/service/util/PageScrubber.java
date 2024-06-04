@@ -31,7 +31,7 @@ public class PageScrubber {
 
         } catch (IOException ex) {
             String message = "Страницу " + url + " проиндексировать не удалось";
-            manipulator.setFailedStateSite(url, message);
+            manipulator.setFailedStateSite(message);
         }
     }
 }

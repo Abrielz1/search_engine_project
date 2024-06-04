@@ -28,9 +28,10 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.TimeUnit;
+import static searchengine.model.enums.SiteStatus.INDEXING;
 import static searchengine.model.enums.SiteStatus.FAILED;
-import static searchengine.model.enums.SiteStatus.INDEXED;
 
 @Slf4j
 @Getter
@@ -51,17 +52,7 @@ public class EntityManipulator {
 
     private final LemmaFinder lemmaFinder;
 
-    @Transactional
-    public void setFailedStateSite(String url,
-                                   String message) {
-
-        Site siteFromDb = this.siteChecker(url).orElseThrow();
-        siteFromDb.setStatus(FAILED);
-        siteFromDb.setLastError(message);
-        siteFromDb.setStatusTime(LocalDateTime.now());
-
-        siteRepository.saveAndFlush(siteFromDb);
-    }
+    private ForkJoinPool pool;
 
     public Optional<Site> siteChecker(String url) {
         return siteRepository.findFirstByUrl(url);
@@ -150,18 +141,6 @@ public class EntityManipulator {
         return false;
     }
 
-    @Transactional
-    public void setFailedState() {
-        List<Site> sitesList = siteRepository.findAll();
-        sitesList.forEach(site -> {
-            site.setStatus(FAILED);
-            site.setStatusTime(LocalDateTime.now());
-            site.setLastError("Индексация остановлена пользователем");
-
-            log.info("Список сайтов не прошедших индексацию сохранён!");
-            siteRepository.saveAllAndFlush(sitesList);
-        });
-    }
 
     public void clearDB() {
         indexRepository.deleteAllInBatch();
@@ -178,7 +157,7 @@ public class EntityManipulator {
             Site siteToSave = new Site();
             siteToSave.setUrl(this.removeLastDash(site.getUrl()));
             siteToSave.setName(site.getName());
-            siteToSave.setStatus(INDEXED);
+            siteToSave.setStatus(INDEXING);
             siteToSave.setLastError(null);
             siteToSave.setStatusTime(LocalDateTime.now());
             sites.add(siteToSave);
@@ -191,7 +170,6 @@ public class EntityManipulator {
         return url.trim().endsWith("/") ?
                 url.substring(0, url.length() - 1) : url;
     }
-
 
     public String urlChecker(String url,
                              Site  site) {
@@ -207,6 +185,31 @@ public class EntityManipulator {
         Map<String, Integer> lemmasWithRanks = lemmaFinder.collectLemmas(pageText);
         this.lemmasAndRanksManipulatorAndSaver(lemmasWithRanks,
                                                 page);
+    }
+
+    public Optional<Site> findSiteByUrl(String url) {
+        return siteRepository.findAll()
+                .stream()
+                .filter(s-> s.getUrl().equals(url))
+                .findFirst();
+    }
+
+    @Transactional
+    public void setFailedStateSite(String message) {
+        List<Site> sites = siteRepository.findAll();
+
+        try {
+            if (pool.awaitTermination(3_000,
+                    TimeUnit.MILLISECONDS)) {
+                sites.forEach(site -> {
+                    site.setStatus(FAILED);
+                    site.setLastError(message);
+                    siteRepository.saveAllAndFlush(sites);
+                });
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     private synchronized void lemmasAndRanksManipulatorAndSaver(Map<String,
@@ -259,12 +262,5 @@ public class EntityManipulator {
         newIndex.setRank(rank);
 
         return newIndex;
-    }
-
-    public Optional<Site> findSiteByUrl(String url) {
-        return siteRepository.findAll()
-                .stream()
-                .filter(s-> s.getUrl().equals(url))
-                .findFirst();
     }
 }

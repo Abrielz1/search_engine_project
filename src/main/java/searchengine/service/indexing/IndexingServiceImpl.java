@@ -124,7 +124,8 @@ public class IndexingServiceImpl implements IndexingService {
 
         for (Site site : siteList) {
             threads.add(new Thread(() -> {
-                pool.invoke(new SiteScrubber(site,
+                pool.invoke(new SiteScrubber(
+                        site,
                         "",
                         settings,
                         siteRepository,
@@ -167,7 +168,7 @@ public class IndexingServiceImpl implements IndexingService {
 
         SiteScrubber.isStopped = true;
         pool.shutdown();
-        manipulator.setFailedState();
+        manipulator.setFailedStateSite("Индексация остановлена пользователем");
         log.info("Индексация остановлена!");
     }
 }

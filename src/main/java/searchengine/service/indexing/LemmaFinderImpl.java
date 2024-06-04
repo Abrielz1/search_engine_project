@@ -46,9 +46,10 @@ public class LemmaFinderImpl implements LemmaFinder {
             }
 
             if (lemmas.containsKey(normalWordForms.get(0))) {
-                lemmas.put(normalWordForms.get(0), lemmas.get(word) + 1);
+                lemmas.put(normalWordForms.get(0),
+                        lemmas.get(normalWordForms.get(0)) + 1);
             } else {
-                lemmas.put(word, 1);
+                lemmas.put(normalWordForms.get(0), 1);
             }
         }
 
