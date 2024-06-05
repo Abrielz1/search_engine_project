@@ -2,17 +2,19 @@ package searchengine.service.util;
 
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.nodes.Document;
-import org.jsoup.select.Elements;
 import searchengine.config.JsoupSettings;
 import searchengine.model.Site;
 import searchengine.repository.PageRepository;
 import searchengine.repository.SiteRepository;
 import java.io.IOException;
+import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.RecursiveAction;
 import java.util.stream.Collectors;
+import static searchengine.model.enums.SiteStatus.FAILED;
 
 @Slf4j
 public class SiteScrubber extends RecursiveAction {
@@ -51,12 +53,16 @@ public class SiteScrubber extends RecursiveAction {
 
     @Override
     protected void compute() {
-
+        try {
         if (pageRepository.existsByPathAndSite(path, site) || isStopped) {
             return;
         }
 
         Document document = this.documentGetter();
+       // Document document = this.getDocument();
+        manipulator.checkSiteAndSavePageToDb(document,
+                site,
+                path);
 
         Set<SiteScrubber> threadPool = ConcurrentHashMap.newKeySet();
         Set<String> setUrlsToScan = this.getUrls(document);
@@ -65,8 +71,37 @@ public class SiteScrubber extends RecursiveAction {
         }
 
         ForkJoinTask.invokeAll(threadPool);
+    } catch (CancellationException ignore) {
+    } catch (Exception e) {
+        e.printStackTrace();
+        setErrorToSite(e);
+    }
     }
 
+//    private Document getDocument() throws IOException,
+//            InterruptedException {
+//        String url = site.getUrl().concat(path);
+//        Thread.sleep(500);
+//        return Jsoup.connect(url)
+//                .userAgent(settings.getUserAgent())
+//                .referrer(settings.getReferrer())
+//                .ignoreHttpErrors(true)
+//                .ignoreContentType(true)
+//                .followRedirects(false)
+//                .timeout(10_000)
+//                .get();
+//    }
+    private void setErrorToSite(Exception e) {
+        Optional<Site> optSite = siteRepository
+                .findFirstByUrl(site.getUrl());
+        if (optSite.isPresent()) {
+            optSite.get().setStatus(FAILED);
+            optSite.get().setLastError("Произошла ошибка " +
+                    "при парсинге страницы: " + site.getUrl() + path
+                    + " Сообщение ошибки: " + e.toString());
+            siteRepository.saveAndFlush(optSite.get());
+        }
+    }
     private Document documentGetter() {
         Document document;
         try {
@@ -75,17 +110,12 @@ public class SiteScrubber extends RecursiveAction {
             throw new RuntimeException(e);
         }
 
-        manipulator.checkSiteAndSavePageToDb(document,
-                site,
-                path);
-
         return document;
     }
 
     private Set<String> getUrls(Document document) {
 
-        Elements urlElement = document.select("a[href]");
-        return urlElement.stream()
+        return document.select("a[href]").stream()
                 .map(url -> url.absUrl("href"))
                 .filter(this::isPathCorrect)
                 .collect(Collectors.toSet());

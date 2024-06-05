@@ -58,7 +58,7 @@ public class EntityManipulator {
         return siteRepository.findFirstByUrl(url);
     }
 
-    @Transactional
+  //  @Transactional
     public void checkSiteAndSavePageToDb(Document document,
                                          Site site,
                                          String path) {
@@ -84,7 +84,7 @@ public class EntityManipulator {
     private synchronized Page checkPage(Document document,
                                         Site site,
                                         String path) {
-        log.error("страницы нет!");
+        log.info("страницы нет!");
         return pageRepository.findFirstByPathAndSite(this.urlVerification(path, site), site).orElseGet(()
                 -> this.createPage(document, site, path));
     }
@@ -149,7 +149,7 @@ public class EntityManipulator {
         siteRepository.deleteAllInBatch();
     }
 
-    @Transactional
+ //   @Transactional
     public void siteSaver() {
         List<Site> sites = new ArrayList<>();
 
@@ -177,7 +177,7 @@ public class EntityManipulator {
                 : url.replace(site.getUrl(), "");
     }
 
-    @Transactional
+ //   @Transactional
     public void proceedLemmasAndIndexes(Page page) {
     String pageText = Jsoup.clean(page.getContent(), Safelist.relaxed())
             .replaceAll("[Ёё]", "е").trim();
@@ -194,7 +194,7 @@ public class EntityManipulator {
                 .findFirst();
     }
 
-    @Transactional
+ //   @Transactional
     public void setFailedStateSite(String message) {
         List<Site> sites = siteRepository.findAll();
 
