@@ -59,7 +59,6 @@ public class SiteScrubber extends RecursiveAction {
         }
 
         Document document = this.documentGetter();
-       // Document document = this.getDocument();
         manipulator.checkSiteAndSavePageToDb(document,
                 site,
                 path);
@@ -71,37 +70,25 @@ public class SiteScrubber extends RecursiveAction {
         }
 
         ForkJoinTask.invokeAll(threadPool);
-    } catch (CancellationException ignore) {
-    } catch (Exception e) {
+        } catch (CancellationException ignore) {
+            } catch (Exception e) {
         e.printStackTrace();
         setErrorToSite(e);
-    }
-    }
-
-//    private Document getDocument() throws IOException,
-//            InterruptedException {
-//        String url = site.getUrl().concat(path);
-//        Thread.sleep(500);
-//        return Jsoup.connect(url)
-//                .userAgent(settings.getUserAgent())
-//                .referrer(settings.getReferrer())
-//                .ignoreHttpErrors(true)
-//                .ignoreContentType(true)
-//                .followRedirects(false)
-//                .timeout(10_000)
-//                .get();
-//    }
-    private void setErrorToSite(Exception e) {
-        Optional<Site> optSite = siteRepository
-                .findFirstByUrl(site.getUrl());
-        if (optSite.isPresent()) {
-            optSite.get().setStatus(FAILED);
-            optSite.get().setLastError("Произошла ошибка " +
-                    "при парсинге страницы: " + site.getUrl() + path
-                    + " Сообщение ошибки: " + e.toString());
-            siteRepository.saveAndFlush(optSite.get());
         }
     }
+
+    private void setErrorToSite(Exception e) {
+        Optional<Site> siteFromDb = siteRepository
+                .findFirstByUrl(site.getUrl());
+        if (siteFromDb.isPresent()) {
+            siteFromDb.get().setStatus(FAILED);
+            siteFromDb.get().setLastError("Произошла ошибка " +
+                    "при парсинге страницы: " + site.getUrl() + path
+                    + " Сообщение ошибки: " + e.toString());
+            siteRepository.saveAndFlush(siteFromDb.get());
+        }
+    }
+
     private Document documentGetter() {
         Document document;
         try {

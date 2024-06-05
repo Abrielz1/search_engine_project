@@ -238,10 +238,10 @@ public class EntityManipulator {
     private Lemma createLemma(String lemma,
                               Page page) {
         Lemma newLemma;
-        Optional<Lemma> optLemma = lemmaRepository.findFirstByLemma(lemma);
-        if (optLemma.isPresent()) {
-            newLemma = optLemma.get();
-            newLemma.setFrequency(optLemma.get().getFrequency() + 1);
+        Optional<Lemma> fromDbLemma = lemmaRepository.findFirstByLemma(lemma);
+        if (fromDbLemma.isPresent()) {
+            newLemma = fromDbLemma.get();
+            newLemma.setFrequency(fromDbLemma.get().getFrequency() + 1);
         } else {
             newLemma = new Lemma();
             newLemma.setLemma(lemma);
