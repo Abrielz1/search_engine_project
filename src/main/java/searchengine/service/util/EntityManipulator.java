@@ -8,7 +8,6 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.safety.Safelist;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import searchengine.config.SiteConfig;
 import searchengine.config.SitesList;
 import searchengine.model.Index;
@@ -54,11 +53,6 @@ public class EntityManipulator {
 
     private ForkJoinPool pool;
 
-    public Optional<Site> siteChecker(String url) {
-        return siteRepository.findFirstByUrl(url);
-    }
-
-  //  @Transactional
     public void checkSiteAndSavePageToDb(Document document,
                                          Site site,
                                          String path) {
@@ -68,25 +62,36 @@ public class EntityManipulator {
         if (siteFromDb.isPresent()) {
             siteFromDb.get().setLastError(null);
             siteFromDb.get().setStatusTime(LocalDateTime.now());
+
             siteRepository.saveAndFlush(siteFromDb.get());
         }
 
-        Page page = checkPage(document,
-                              site,
-                              path);
+        Page page;
+        synchronized (this) {
+            page = this.checkPage(
+                    document,
+                    site,
+                    path);
+
+
+            this.savePageInBd(page);
+        }
 
         if (page.getCode() < 220) {
-            this.savePageInBd(page);
             this.proceedLemmasAndIndexes(page);
         }
     }
 
-    private synchronized Page checkPage(Document document,
-                                        Site site,
-                                        String path) {
-        log.info("страницы нет!");
-        return pageRepository.findFirstByPathAndSite(this.urlVerification(path, site), site).orElseGet(()
-                -> this.createPage(document, site, path));
+    private Optional<Site> siteChecker(String url) {
+        return siteRepository.findFirstByUrl(url);
+    }
+
+    private Page checkPage(Document document,
+                           Site site,
+                           String path) {
+
+        return pageRepository.findFirstByPathAndSite(this.urlVerification(path, site), site)
+                .orElseGet(()-> this.createPage(document, site, path));
     }
 
     private Page createPage(Document document,
@@ -109,7 +114,7 @@ public class EntityManipulator {
                 : url.replace(site.getUrl(), "");
     }
 
-    private synchronized void savePageInBd(Page page) {
+    private void savePageInBd(Page page) {
         pageRepository.saveAndFlush(page);
     }
 
@@ -149,7 +154,6 @@ public class EntityManipulator {
         siteRepository.deleteAllInBatch();
     }
 
- //   @Transactional
     public void siteSaver() {
         List<Site> sites = new ArrayList<>();
 
@@ -177,10 +181,10 @@ public class EntityManipulator {
                 : url.replace(site.getUrl(), "");
     }
 
- //   @Transactional
     public void proceedLemmasAndIndexes(Page page) {
     String pageText = Jsoup.clean(page.getContent(), Safelist.relaxed())
-            .replaceAll("[Ёё]", "е").trim();
+            .replaceAll("[Ёё]", "е")
+            .trim();
 
         Map<String, Integer> lemmasWithRanks = lemmaFinder.collectLemmas(pageText);
         this.lemmasAndRanksManipulatorAndSaver(lemmasWithRanks,
@@ -194,7 +198,6 @@ public class EntityManipulator {
                 .findFirst();
     }
 
- //   @Transactional
     public void setFailedStateSite(String message) {
         List<Site> sites = siteRepository.findAll();
 

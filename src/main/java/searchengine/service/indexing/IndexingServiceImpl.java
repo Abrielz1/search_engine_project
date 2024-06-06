@@ -80,6 +80,7 @@ public class IndexingServiceImpl implements IndexingService {
         if (SiteScrubber.isStopped) {
             response.setResult(true);
             return response;
+
         } else if (!isIndexing()) {
             response.setResult(false);
             response.setError("Индексация не запущена");

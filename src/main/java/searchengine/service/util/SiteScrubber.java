@@ -9,7 +9,6 @@ import searchengine.repository.SiteRepository;
 import java.io.IOException;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.CancellationException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.RecursiveAction;
@@ -54,38 +53,27 @@ public class SiteScrubber extends RecursiveAction {
     @Override
     protected void compute() {
         try {
-        if (pageRepository.existsByPathAndSite(path, site) || isStopped) {
-            return;
-        }
 
-        Document document = this.documentGetter();
-        manipulator.checkSiteAndSavePageToDb(document,
-                site,
-                path);
+            if (pageRepository.existsByPathAndSite(path, site) || isStopped) {
+                return;
+            }
 
-        Set<SiteScrubber> threadPool = ConcurrentHashMap.newKeySet();
-        Set<String> setUrlsToScan = this.getUrls(document);
-        for (String urlToScan : setUrlsToScan) {
-            threadPool.add(this.createSiteScrubberThread(urlToScan));
-        }
+            Document document = this.documentGetter();
+            manipulator.checkSiteAndSavePageToDb(document,
+                                                 site,
+                                                 path);
 
-        ForkJoinTask.invokeAll(threadPool);
-        } catch (CancellationException ignore) {
-            } catch (Exception e) {
-        e.printStackTrace();
-        setErrorToSite(e);
-        }
-    }
+            Set<SiteScrubber> threadPool = ConcurrentHashMap.newKeySet();
+            Set<String> setUrlsToScan = this.getUrls(document);
+            for (String urlToScan : setUrlsToScan) {
+                threadPool.add(this.createSiteScrubberThread(urlToScan));
+            }
 
-    private void setErrorToSite(Exception e) {
-        Optional<Site> siteFromDb = siteRepository
-                .findFirstByUrl(site.getUrl());
-        if (siteFromDb.isPresent()) {
-            siteFromDb.get().setStatus(FAILED);
-            siteFromDb.get().setLastError("Произошла ошибка " +
-                    "при парсинге страницы: " + site.getUrl() + path
-                    + " Сообщение ошибки: " + e.toString());
-            siteRepository.saveAndFlush(siteFromDb.get());
+            ForkJoinTask.invokeAll(threadPool);
+
+        } catch (Throwable e) {
+            e.printStackTrace();
+            this.setErrorAndFailedStateToSite( e);
         }
     }
 
@@ -122,11 +110,25 @@ public class SiteScrubber extends RecursiveAction {
 
         return new SiteScrubber(site,
                 manipulator.urlChecker(
-                                url,
-                                site),
-                                settings,
-                                siteRepository,
-                                pageRepository,
-                                manipulator);
+                        url,
+                        site),
+                settings,
+                siteRepository,
+                pageRepository,
+                manipulator);
+    }
+
+    private void setErrorAndFailedStateToSite(Throwable e) {
+        Optional<Site> siteFromDb = siteRepository
+                .findFirstByUrl(site.getUrl());
+
+        if (siteFromDb.isPresent()) {
+            siteFromDb.get().setStatus(FAILED);
+            siteFromDb.get().setLastError("Произошла ошибка " +
+                    "при обработке страницы: " + site.getUrl() + path
+                    + " Сообщение ошибки: " + e.toString());
+
+            siteRepository.saveAndFlush(siteFromDb.get());
+        }
     }
 }

@@ -45,7 +45,7 @@ public class SiteController {
 
         try {
         Thread.sleep(1000);
-        } catch (InterruptedException exception) {
+        } catch (Exception exception) {
             exception.printStackTrace();
             this.setFailedStatus(url, exception);
         }
