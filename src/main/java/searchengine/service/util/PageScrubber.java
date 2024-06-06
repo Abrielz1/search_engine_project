@@ -30,7 +30,7 @@ public class PageScrubber {
                     url.replace(site.getUrl(), "")));
 
         } catch (IOException ex) {
-            String message = "Страницу " + url + " проиндексировать не удалось";
+            String message = "Страницу по адресу: %s проиндексировать не удалось".formatted(url);
             manipulator.setFailedStateSite(message);
         }
     }

@@ -52,19 +52,19 @@ public class SiteScrubber extends RecursiveAction {
 
     @Override
     protected void compute() {
+        Set<SiteScrubber> threadPool = ConcurrentHashMap.newKeySet();
+
         try {
 
-            if (pageRepository.existsByPathAndSite(path, site) || isStopped) {
+            if (pageRepository.existsByPathAndSite(path, site)
+                    || isStopped) {
                 return;
             }
 
             Document document = this.documentGetter();
-            manipulator.checkSiteAndSavePageToDb(document,
-                                                 site,
-                                                 path);
-
-            Set<SiteScrubber> threadPool = ConcurrentHashMap.newKeySet();
+            this.saverSiteAndPageByPath(document, site, path);
             Set<String> setUrlsToScan = this.getUrls(document);
+
             for (String urlToScan : setUrlsToScan) {
                 threadPool.add(this.createSiteScrubberThread(urlToScan));
                 Thread.sleep(1000);
@@ -73,9 +73,17 @@ public class SiteScrubber extends RecursiveAction {
             ForkJoinTask.invokeAll(threadPool);
 
         } catch (Throwable e) {
-            e.printStackTrace();
-            this.setErrorAndFailedStateToSite( e);
+            this.setErrorAndFailedStateToSite(e);
         }
+    }
+
+    private void saverSiteAndPageByPath(Document document,
+                       Site site,
+                       String path) {
+
+        manipulator.checkSiteAndSavePageToDb(document,
+                                             site,
+                                             path);
     }
 
     private Document documentGetter() {
@@ -91,7 +99,8 @@ public class SiteScrubber extends RecursiveAction {
 
     private Set<String> getUrls(Document document) {
 
-        return document.select("a[href]").stream()
+        return document.select("a[href]")
+                .stream()
                 .map(url -> url.absUrl("href"))
                 .filter(this::isPathCorrect)
                 .collect(Collectors.toSet());
@@ -125,11 +134,15 @@ public class SiteScrubber extends RecursiveAction {
 
         if (siteFromDb.isPresent()) {
             siteFromDb.get().setStatus(FAILED);
-            siteFromDb.get().setLastError("Произошла ошибка " +
-                    "при обработке страницы: " + site.getUrl() + path
-                    + " Сообщение ошибки: " + e.toString());
+            siteFromDb.get()
+                    .setLastError(String.format("Произошла ошибка: %s при обработке страницы: %s текст ошибки: %s",
+                        site.getUrl(),
+                        path,
+                        e.toString()
+                    ));
 
             siteRepository.saveAndFlush(siteFromDb.get());
         }
     }
 }
+

@@ -73,8 +73,9 @@ public class EntityManipulator {
                     site,
                     path);
 
-
-            this.savePageInBd(page);
+            if (page.getCode() < 220) {
+                this.savePageInBd(page);
+            }
         }
 
         if (page.getCode() < 220) {
@@ -91,7 +92,7 @@ public class EntityManipulator {
                            String path) {
 
         return pageRepository.findFirstByPathAndSite(this.urlVerification(path, site), site)
-                .orElseGet(()-> this.createPage(document, site, path));
+                .orElseGet(() -> this.createPage(document, site, path));
     }
 
     private Page createPage(Document document,
@@ -176,25 +177,25 @@ public class EntityManipulator {
     }
 
     public String urlChecker(String url,
-                             Site  site) {
+                             Site site) {
         return url.equals(site.getUrl()) ? "/"
                 : url.replace(site.getUrl(), "");
     }
 
     public void proceedLemmasAndIndexes(Page page) {
-    String pageText = Jsoup.clean(page.getContent(), Safelist.relaxed())
-            .replaceAll("[Ёё]", "е")
-            .trim();
+        String pageText = Jsoup.clean(page.getContent(), Safelist.relaxed())
+                .replaceAll("[Ёё]", "е")
+                .trim();
 
         Map<String, Integer> lemmasWithRanks = lemmaFinder.collectLemmas(pageText);
         this.lemmasAndRanksManipulatorAndSaver(lemmasWithRanks,
-                                                page);
+                page);
     }
 
     public Optional<Site> findSiteByUrl(String url) {
         return siteRepository.findAll()
                 .stream()
-                .filter(s-> s.getUrl().equals(url))
+                .filter(s -> s.getUrl().equals(url))
                 .findFirst();
     }
 
@@ -202,7 +203,7 @@ public class EntityManipulator {
         List<Site> sites = siteRepository.findAll();
 
         try {
-            if (pool.awaitTermination(3_000,
+            if (pool.awaitTermination(3000,
                     TimeUnit.MILLISECONDS)) {
                 sites.forEach(site -> {
                     site.setStatus(FAILED);
@@ -216,7 +217,7 @@ public class EntityManipulator {
     }
 
     private synchronized void lemmasAndRanksManipulatorAndSaver(Map<String,
-                                                                Integer> lemmasWithRanks,
+            Integer> lemmasWithRanks,
                                                                 Page page) {
         Set<Lemma> lemmas = ConcurrentHashMap.newKeySet();
         Set<Index> indices = ConcurrentHashMap.newKeySet();
@@ -240,13 +241,14 @@ public class EntityManipulator {
 
     private Lemma createLemma(String lemma,
                               Page page) {
-        Lemma newLemma;
+
+        Lemma newLemma = new Lemma();
         Optional<Lemma> fromDbLemma = lemmaRepository.findFirstByLemma(lemma);
+
         if (fromDbLemma.isPresent()) {
             newLemma = fromDbLemma.get();
             newLemma.setFrequency(fromDbLemma.get().getFrequency() + 1);
         } else {
-            newLemma = new Lemma();
             newLemma.setLemma(lemma);
             newLemma.setSite(page.getSite());
             newLemma.setFrequency(1);
