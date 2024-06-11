@@ -118,5 +118,6 @@ public class SnippetManipulator {
 
         return resultText.indexOf(" ", startIndex > leftSpace ?
                 startIndex - leftSpace : startIndex);
+
     }
 }
