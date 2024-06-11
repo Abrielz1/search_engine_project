@@ -70,7 +70,7 @@ public class SearchingServiceImpl implements SearchingService {
 
         if (lemmaList.size() == 0) {
             newSearchResponseDTO.setResult(false);
-            newSearchResponseDTO.setError("Страниц, удовлетворяющих запрос, нет");
+            newSearchResponseDTO.setError("Страниц, удовлетворяющих запрос, нет!");
         }
 
         return this.searchResponse(lemmaList,
@@ -80,9 +80,12 @@ public class SearchingServiceImpl implements SearchingService {
     }
 
     private boolean siteChecker(String site) {
-        return sitesList.getSites().stream().anyMatch(s-> (
-                s.getUrl().endsWith("/") ?
-                        s.getUrl().substring(0, s.getUrl().length() - 1) : s.getUrl())
+
+        return sitesList.getSites()
+                .stream()
+                .anyMatch(s -> (
+                        s.getUrl().endsWith("/") ?
+                                s.getUrl().substring(0, s.getUrl().length() - 1) : s.getUrl())
                 .equals(site));
     }
 
@@ -94,17 +97,18 @@ public class SearchingServiceImpl implements SearchingService {
                                              String site,
                                              Integer from,
                                              Integer size) {
-    SearchResponseDTO response = new SearchResponseDTO();
-    Set<Page> setPagesInDb = this.checkPageInDb(sortedLemmas,
-                                                site);
+
+        SearchResponseDTO response = new SearchResponseDTO();
+        Set<Page> setPagesInDb = this.checkPageInDb(sortedLemmas,
+                                                    site);
 
         if (CollectionUtils.isEmpty(setPagesInDb)) {
             response.setError("Слова в запросе встречаются слишком часто, попробуйте уточнить запрос подробнее");
             return response;
         }
 
-    List<PageDataDTO> responseDataDtoList = this.createResponseDataDtoList(sortedLemmas,
-                                                                           setPagesInDb);
+        List<PageDataDTO> responseDataDtoList = this.createResponseDataDtoList(sortedLemmas,
+                                                                               setPagesInDb);
 
         response.setCount(responseDataDtoList.size());
         response.setResult(true);
@@ -119,11 +123,11 @@ public class SearchingServiceImpl implements SearchingService {
 
     private Set<Page> checkPageInDb(List<Lemma> lemmaList,
                                     String site) {
-    List<Site> sites = findSitesListInDb(site);
-    List<Lemma> listNonFrequentLemmas = this.findNonFrequentLemmas(lemmaList);
-    Set<Page> resultOfProceedPages = pageRepository.getByLemmasAndSite(listNonFrequentLemmas,
-                                                                       sites);
 
+        List<Site> sites = findSitesListInDb(site);
+        List<Lemma> listNonFrequentLemmas = this.findNonFrequentLemmas(lemmaList);
+        Set<Page> resultOfProceedPages = pageRepository.getByLemmasAndSite(listNonFrequentLemmas,
+                                                                           sites);
 
         for (Lemma lemma : listNonFrequentLemmas) {
             Set<Page> foundPagesSet = pageRepository.findByOneLemmaAndSitesAndPages(lemma,
@@ -133,14 +137,14 @@ public class SearchingServiceImpl implements SearchingService {
             resultOfProceedPages.addAll(foundPagesSet);
         }
 
-    return resultOfProceedPages;
+        return resultOfProceedPages;
     }
 
     private List<PageDataDTO> createResponseDataDtoList(List<Lemma> lemmaList,
                                                         Set<Page> setPagesInDb) {
-    List<PageDataDTO> resultList = new ArrayList<>();
+        List<PageDataDTO> resultList = new ArrayList<>();
 
-        for (Page page: setPagesInDb) {
+        for (Page page : setPagesInDb) {
             String pageContent = page.getContent();
             PageDataDTO newData = this.collectData(page,
                                                    pageContent,
@@ -159,11 +163,12 @@ public class SearchingServiceImpl implements SearchingService {
                                             Integer size) {
 
         return responceDataDtoList.subList(from,
-                                                Math.min(from + size,
-                                                        lemmaListSize));
+                Math.min(from + size,
+                         lemmaListSize));
     }
 
     private List<Site> findSitesListInDb(String site) {
+
         List<Site> sites = new ArrayList<>();
         Optional<Site> siteInBd = siteRepository.findFirstByUrl(site);
 
@@ -177,8 +182,9 @@ public class SearchingServiceImpl implements SearchingService {
     }
 
     private List<Lemma> findNonFrequentLemmas(List<Lemma> lemmaList) {
+
         return lemmaList.stream()
-                .filter(frequency->
+                .filter(frequency ->
                         frequency.getFrequency() < 250)
                 .collect(Collectors.toList());
     }
@@ -186,6 +192,7 @@ public class SearchingServiceImpl implements SearchingService {
     private PageDataDTO collectData(Page page,
                                     String content,
                                     List<Lemma> sortedLemmas) {
+
         PageDataDTO pageDataDTO = new PageDataDTO();
 
         pageDataDTO.setSite(page.getSite().getUrl());
@@ -195,23 +202,26 @@ public class SearchingServiceImpl implements SearchingService {
         pageDataDTO.setRelevance(this.getRelevance(page));
         pageDataDTO.setSnippet(snippetManipulator.createSnippet(this.pageProceed(content),
                                                                 sortedLemmas));
+
         return pageDataDTO;
     }
 
     private Float getRelevance(Page page) {
-       if (maxRelevance == null) {
-           maxRelevance = indexRepository.getMaxIndex();
-       }
+
+        if (maxRelevance == null) {
+            maxRelevance = indexRepository.getMaxIndex();
+        }
 
         return indexRepository.getReference(page,
-                                            maxRelevance);
+                maxRelevance);
     }
 
     private String findTitle(String content) {
+
         if (content.contains("<title>") && content.contains("</title>")) {
 
             return content.substring(content.indexOf("<title>") + "<title>".length(),
-                                     content.indexOf("</title>"));
+                    content.indexOf("</title>"));
         } else {
 
             return null;
@@ -219,6 +229,7 @@ public class SearchingServiceImpl implements SearchingService {
     }
 
     private String pageProceed(String content) {
+
         return Jsoup.clean(content, Safelist.relaxed())
                 .replaceAll("&nbsp;", " ")
                 .replaceAll("<[^>]*>", " ")
