@@ -103,10 +103,14 @@ public class EntityManipulator {
         newPage.setCode(document.connection().response().statusCode());
         newPage.setPath(this.urlVerification(path, site));
         newPage.setSite(site);
-        newPage.setContent(this.siteHtmlTagsCleaner(document.html()));
+        newPage.setContent((document.html())); //this.siteHtmlTagsCleaner
 
         return newPage;
     }
+//
+//    private String siteHtmlTagsCleaner(String html) {
+//        return Jsoup.parse(html).text();
+//    }
 
     public String urlVerification(String url,
                                   Site site) {
@@ -117,10 +121,6 @@ public class EntityManipulator {
 
     private void savePageInBd(Page page) {
         pageRepository.saveAndFlush(page);
-    }
-
-    private String siteHtmlTagsCleaner(String html) {
-        return Jsoup.parse(html).text();
     }
 
     public boolean urlChecker(String url) throws IOException {

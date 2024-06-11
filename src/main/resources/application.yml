@@ -4,7 +4,7 @@ server:
 spring:
   jpa:
     hibernate:
-      ddl-auto: none
+      ddl-auto: update
     show-sql: true
     properties:
       hibernate:
@@ -25,10 +25,10 @@ indexing-settings:
 #      name: Volochek
 #    - url: https://www.svetlovka.ru
 #      name: Svetlovka
-#    - url: https://www.playback.ru
-#      name: PlayBack.Ru
-    - url: https://www.culture.ru/l
-      name: Kultura.rf
+    - url: https://www.playback.ru
+      name: PlayBack.Ru
+#    - url: https://www.culture.ru/l
+#      name: Kultura.rf
 jsoup-settings:
   user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36
   referrer: http://www.google.com
