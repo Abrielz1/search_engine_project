@@ -95,6 +95,11 @@ public class SnippetManipulator {
     }
 
     private Integer startIndexOfTextFinder(String resultText) {
+
+        if (!resultText.contains(START_TAG)) {
+            return 0;
+        }
+
         String[] split = resultText.substring(resultText.indexOf(START_TAG),
                         resultText.indexOf(END_TAG))
                 .split("(?<=[.!?·])\\s*(?=(<b>|\"|«|· )?[А-ЯЁ])");
