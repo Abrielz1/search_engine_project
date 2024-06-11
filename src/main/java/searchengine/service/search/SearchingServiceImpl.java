@@ -114,8 +114,6 @@ public class SearchingServiceImpl implements SearchingService {
                                             from,
                                             size));
 
-
-
         return response;
     }
 
@@ -161,8 +159,8 @@ public class SearchingServiceImpl implements SearchingService {
                                             Integer size) {
 
         return responceDataDtoList.subList(from,
-                Math.min(from + size,
-                        lemmaListSize));
+                                                Math.min(from + size,
+                                                        lemmaListSize));
     }
 
     private List<Site> findSitesListInDb(String site) {
