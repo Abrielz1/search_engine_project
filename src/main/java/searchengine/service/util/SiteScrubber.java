@@ -67,7 +67,7 @@ public class SiteScrubber extends RecursiveAction {
 
             for (String urlToScan : setUrlsToScan) {
                 threadPool.add(this.createSiteScrubberThread(urlToScan));
-                Thread.sleep(1000);
+                Thread.sleep(2000);
             }
 
             ForkJoinTask.invokeAll(threadPool);

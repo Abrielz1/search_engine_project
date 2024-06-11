@@ -195,7 +195,6 @@ public class SearchingServiceImpl implements SearchingService {
         pageDataDTO.setRelevance(this.getRelevance(page));
         pageDataDTO.setSnippet(snippetManipulator.createSnippet(this.pageProceed(content),
                                                                 sortedLemmas));
-
         return pageDataDTO;
     }
 
