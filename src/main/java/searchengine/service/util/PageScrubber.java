@@ -31,20 +31,6 @@ public class PageScrubber {
                     site,
                     url.replace(site.getUrl(), "")));
 
-            if (siteFromDb.isEmpty()) {
-                Site siteToCreate = new Site();
-
-                String name = siteFromDb.get().getName() != null ?
-                        siteFromDb.get().getName() : "";
-
-                siteToCreate.setLastError(null);
-                siteToCreate.setStatusTime(LocalDateTime.now());
-                siteToCreate.setUrl(tempUrl);
-                siteToCreate.setName(name);
-
-                manipulator.checkSiteAndSavePageToDb(document, siteToCreate, tempUrl);
-            }
-
         } catch (IOException ex) {
             String message = "Страницу по адресу: %s проиндексировать не удалось".formatted(url);
             manipulator.setFailedStateSite(message);
