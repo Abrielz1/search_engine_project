@@ -24,6 +24,7 @@ public class SiteController {
     private final JsoupSettings settings;
 
     public Document accessSite(String url) throws IOException {
+
         try {
             semaphore.acquire();
         } catch (InterruptedException e) {

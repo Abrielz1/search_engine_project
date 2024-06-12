@@ -6,7 +6,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import searchengine.model.Lemma;
 import searchengine.service.indexing.LemmaFinder;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -47,6 +46,7 @@ public class SnippetManipulator {
     private String checkWord(String word,
                              String lemma,
                              Map<String, Set<String>> mapOfLemmasAndForms) {
+
         String[] splitWord = word.split("\\s+");
 
         for (String proceedWord : splitWord) {
@@ -70,6 +70,7 @@ public class SnippetManipulator {
     }
 
     private String snippedFinalizer(String resultText) {
+
         String snippet = "";
         Integer startIndex = this.startIndexOfTextFinder(resultText);
 

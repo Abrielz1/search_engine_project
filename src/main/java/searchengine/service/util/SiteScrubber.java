@@ -52,6 +52,7 @@ public class SiteScrubber extends RecursiveAction {
 
     @Override
     protected void compute() {
+
         Set<SiteScrubber> threadPool = ConcurrentHashMap.newKeySet();
 
         try {
@@ -87,6 +88,7 @@ public class SiteScrubber extends RecursiveAction {
     }
 
     private Document documentGetter() {
+
         Document document;
         try {
             document = siteController.accessSite(site.getUrl().concat(path));
@@ -107,6 +109,7 @@ public class SiteScrubber extends RecursiveAction {
     }
 
     private boolean isPathCorrect(String url) {
+
         if (!url.startsWith(site.getUrl())) {
             return false;
         }
@@ -129,6 +132,7 @@ public class SiteScrubber extends RecursiveAction {
     }
 
     private void setErrorAndFailedStateToSite(Throwable e) {
+
         Optional<Site> siteFromDb = siteRepository
                 .findFirstByUrl(site.getUrl());
 

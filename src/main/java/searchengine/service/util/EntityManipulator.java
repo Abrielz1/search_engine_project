@@ -95,7 +95,7 @@ public class EntityManipulator {
                 .orElseGet(() -> this.createPage(document, site, path));
     }
 
-    private Page createPage(Document document,
+    public Page createPage(Document document,
                             Site site,
                             String path) {
 

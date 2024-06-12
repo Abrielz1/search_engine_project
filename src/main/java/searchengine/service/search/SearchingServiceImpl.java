@@ -162,6 +162,10 @@ public class SearchingServiceImpl implements SearchingService {
                                             Integer from,
                                             Integer size) {
 
+        if (from >= lemmaListSize || from >= responceDataDtoList.size() - 1) {
+            from = 0;
+        }
+
         if (lemmaListSize > responceDataDtoList.size()) {
             lemmaListSize = responceDataDtoList.size();
         }
