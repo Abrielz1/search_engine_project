@@ -95,7 +95,7 @@ public class EntityManipulator {
                 .orElseGet(() -> this.createPage(document, site, path));
     }
 
-    public Page createPage(Document document,
+    private Page createPage(Document document,
                             Site site,
                             String path) {
 
@@ -103,14 +103,10 @@ public class EntityManipulator {
         newPage.setCode(document.connection().response().statusCode());
         newPage.setPath(this.urlVerification(path, site));
         newPage.setSite(site);
-        newPage.setContent((document.html())); //this.siteHtmlTagsCleaner
+        newPage.setContent((document.html()));
 
         return newPage;
     }
-//
-//    private String siteHtmlTagsCleaner(String html) {
-//        return Jsoup.parse(html).text();
-//    }
 
     public String urlVerification(String url,
                                   Site site) {

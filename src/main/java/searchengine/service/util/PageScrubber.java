@@ -42,7 +42,7 @@ public class PageScrubber {
                 siteToCreate.setUrl(tempUrl);
                 siteToCreate.setName(name);
 
-                manipulator.createPage(document, siteToCreate, tempUrl);
+                manipulator.checkSiteAndSavePageToDb(document, siteToCreate, tempUrl);
             }
 
         } catch (IOException ex) {
