@@ -90,6 +90,7 @@ public class SearchingServiceImpl implements SearchingService {
     }
 
     private List<Lemma> findListOfLemmasInDbAversSorted(Set<String> lemmasSet) {
+
         return lemmaFinder.getSortedLemmasSetFromDbAversSorted(lemmasSet);
     }
 
@@ -142,6 +143,7 @@ public class SearchingServiceImpl implements SearchingService {
 
     private List<PageDataDTO> createResponseDataDtoList(List<Lemma> lemmaList,
                                                         Set<Page> setPagesInDb) {
+
         List<PageDataDTO> resultList = new ArrayList<>();
 
         for (Page page : setPagesInDb) {

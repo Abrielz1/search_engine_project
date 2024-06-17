@@ -81,8 +81,8 @@ public class SiteScrubber extends RecursiveAction {
     }
 
     private void saverSiteAndPageByPath(Document document,
-                       Site site,
-                       String path) {
+                                        Site site,
+                                        String path) {
 
         manipulator.checkSiteAndSavePageToDb(document,
                                              site,
@@ -92,6 +92,7 @@ public class SiteScrubber extends RecursiveAction {
     private Document documentGetter() {
 
         Document document;
+
         try {
             document = siteController.accessSite(site.getUrl().concat(path));
         } catch (IOException e) {

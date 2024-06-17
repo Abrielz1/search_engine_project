@@ -82,6 +82,7 @@ public class EntityManipulator {
     }
 
     private Optional<Site> siteChecker(String url) {
+
         return siteRepository.findFirstByUrl(url);
     }
 
@@ -89,7 +90,8 @@ public class EntityManipulator {
                            Site site,
                            String path) {
 
-        return pageRepository.findFirstByPathAndSite(this.urlVerification(path, site), site)
+        return pageRepository.findFirstByPathAndSite(this.urlVerification(path, site),
+                                                                          site)
                 .orElseGet(() -> this.createPage(document, site, path));
     }
 
@@ -114,13 +116,16 @@ public class EntityManipulator {
     }
 
     private void savePageInBd(Page page) {
+
         pageRepository.saveAndFlush(page);
     }
 
     public boolean urlChecker(String url) throws IOException {
 
-        if (!url.matches("https?://[\\w\\W]+"))
+        if (!url.matches("https?://[\\w\\W]+")) {
+
             return false;
+        }
 
         if (Jsoup.connect(url)
                 .ignoreHttpErrors(true)
@@ -129,11 +134,13 @@ public class EntityManipulator {
                 .connection()
                 .response()
                 .statusCode() == 404) {
+
             return false;
         }
 
         for (SiteConfig site : sitesList.getSites()) {
             if (url.startsWith(site.getUrl())) {
+
                 return true;
             }
         }
@@ -143,6 +150,7 @@ public class EntityManipulator {
 
 
     public void clearDB() {
+
         indexRepository.deleteAllInBatch();
         lemmaRepository.deleteAllInBatch();
         pageRepository.deleteAllInBatch();
@@ -150,6 +158,7 @@ public class EntityManipulator {
     }
 
     public void siteSaver() {
+
         List<Site> sites = new ArrayList<>();
 
         for (SiteConfig site : sitesList.getSites()) {
@@ -166,27 +175,31 @@ public class EntityManipulator {
     }
 
     public String removeLastDash(String url) {
+
         return url.trim().endsWith("/") ?
                 url.substring(0, url.length() - 1) : url;
     }
 
     public String urlChecker(String url,
                              Site site) {
+
         return url.equals(site.getUrl()) ? "/"
                 : url.replace(site.getUrl(), "");
     }
 
     public void proceedLemmasAndIndexes(Page page) {
+
         String pageText = Jsoup.clean(page.getContent(), Safelist.relaxed())
                 .replaceAll("[Ёё]", "е")
                 .trim();
 
         Map<String, Integer> lemmasWithRanks = lemmaFinder.collectLemmas(pageText);
         this.lemmasAndRanksManipulatorAndSaver(lemmasWithRanks,
-                page);
+                                               page);
     }
 
     public Optional<Site> findSiteByUrl(String url) {
+
         return siteRepository.findAll()
                 .stream()
                 .filter(s -> s.getUrl().equals(url))
@@ -194,6 +207,7 @@ public class EntityManipulator {
     }
 
     public void setFailedStateSite(String message) {
+
         List<Site> sites = siteRepository.findAll();
 
         try {
@@ -213,6 +227,7 @@ public class EntityManipulator {
     private synchronized void lemmasAndRanksManipulatorAndSaver(Map<String,
                                                                 Integer> lemmasWithRanks,
                                                                 Page page) {
+
         Set<Lemma> lemmas = ConcurrentHashMap.newKeySet();
         Set<Index> indices = ConcurrentHashMap.newKeySet();
 

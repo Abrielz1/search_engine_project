@@ -19,6 +19,7 @@ import java.util.Set;
 @Slf4j
 @Service
 public class LemmaFinderImpl implements LemmaFinder {
+
     private final LemmaRepository lemmaRepository;
 
     private final LuceneMorphology luceneMorphology = new RussianLuceneMorphology();
@@ -31,6 +32,7 @@ public class LemmaFinderImpl implements LemmaFinder {
 
     @Override
     public Map<String, Integer> collectLemmas(String text) {
+
         Map<String, Integer> lemmas = new HashMap<>();
 
         for (String word : stringManipulator(text)) {
@@ -58,6 +60,7 @@ public class LemmaFinderImpl implements LemmaFinder {
 
     @Override
     public Set<String> getLemmaSet(String text) {
+
         Set<String> lemmasSet = new HashSet<>();
 
         for (String word: this.stringManipulator(text)) {
@@ -75,6 +78,7 @@ public class LemmaFinderImpl implements LemmaFinder {
 
     @Override
     public Map<String, Set<String>> collectLemmasAndWords(String text) {
+
         Map<String, Set<String>> mapLemmasAndWords = new HashMap<>();
 
         for (String word : this.stringManipulator(text)) {
@@ -95,10 +99,12 @@ public class LemmaFinderImpl implements LemmaFinder {
                 }});
             }
         }
+
         return mapLemmasAndWords;
     }
 
     private String[] stringManipulator(String text) {
+
         return text.toLowerCase(Locale.ROOT)
                 .replaceAll("ё", "е")
                 .replaceAll("Ё", "Е")
@@ -108,6 +114,7 @@ public class LemmaFinderImpl implements LemmaFinder {
     }
 
     private boolean isWrongWord(String word) {
+
         if (!StringUtils.hasText(word)) {
             return true;
         }
@@ -117,6 +124,7 @@ public class LemmaFinderImpl implements LemmaFinder {
     }
 
     private boolean isParticle(String word) {
+
         String base = word.toUpperCase().substring(word.indexOf("|"));
 
         for (String i : particlesNames) {
@@ -130,11 +138,13 @@ public class LemmaFinderImpl implements LemmaFinder {
     }
 
     private boolean isWordParticle(List<String> baseWordFormsList) {
+
         return baseWordFormsList.stream().anyMatch(this::isParticle);
     }
 
     @Override
     public List<Lemma> getSortedLemmasSetFromDbAversSorted(Set<String> lemmasSet) {
+
         List<Lemma> lemmaList = lemmaRepository.findByLemma(lemmasSet);
 
         if (lemmaList.size() < lemmasSet.size()) {

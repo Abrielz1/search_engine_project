@@ -68,6 +68,7 @@ public class IndexingServiceImpl implements IndexingService {
             response.setResult(false);
         }
 
+        log.info("Scanner is started now: " + LocalDateTime.now());
         return response;
     }
 
@@ -86,11 +87,13 @@ public class IndexingServiceImpl implements IndexingService {
             response.setError("Индексация не запущена");
         }
 
+        log.info("Scanner is stopped now: " + LocalDateTime.now());
         return response;
     }
 
     @Override
     public IndexingPagingResponseDTO startIndexPage(String url) {
+
         IndexingPagingResponseDTO response = new IndexingPagingResponseDTO();
 
         if (!StringUtils.hasText(url)) {
@@ -104,6 +107,7 @@ public class IndexingServiceImpl implements IndexingService {
                 response.setResult(true);
                 new Thread(() -> pageScrubber.siteScrubber(url)).start();
 
+                log.info("Indexing of page: %s".formatted(url));
                 return response;
             }
         } catch (IOException exception) {
@@ -116,6 +120,7 @@ public class IndexingServiceImpl implements IndexingService {
     }
 
     private void beginIndexingSites() {
+
         SiteScrubber.isStopped = false;
         manipulator.clearDB();
         manipulator.siteSaver();
@@ -134,12 +139,14 @@ public class IndexingServiceImpl implements IndexingService {
                         manipulator));
 
                 this.setSitesIndexedStatus(site);
+                log.info("Job is done! Sites is indexed at time: " + LocalDateTime.now());
             }));
         }
         threads.forEach(Thread::start);
     }
 
     private void setSitesIndexedStatus(Site site) {
+
         if (SiteScrubber.isStopped) {
             return;
         }
@@ -155,6 +162,7 @@ public class IndexingServiceImpl implements IndexingService {
 
     @Override
     public boolean isIndexing() {
+
         if (pool == null) {
             return false;
         }
@@ -163,6 +171,7 @@ public class IndexingServiceImpl implements IndexingService {
     }
 
     private void stopIndexingSites() {
+
         if (!isIndexing()) {
             return;
         }
