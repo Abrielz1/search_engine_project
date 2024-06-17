@@ -25,14 +25,14 @@ public class SiteController {
 
     public Document accessSite(String url) throws IOException {
 
+        if (url == null) {
+            return null;
+        }
+
         try {
             semaphore.acquire();
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
-        }
-
-        if (url == null) {
-            return null;
         }
 
         Document pageContent = Jsoup.connect(url)
@@ -50,6 +50,7 @@ public class SiteController {
             exception.printStackTrace();
             this.setFailedStatus(url, exception);
         }
+
         finally {
             semaphore.release();
         }

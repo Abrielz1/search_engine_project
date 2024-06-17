@@ -9,6 +9,7 @@ import searchengine.repository.SiteRepository;
 import java.io.IOException;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.RecursiveAction;
@@ -68,13 +69,14 @@ public class SiteScrubber extends RecursiveAction {
 
             for (String urlToScan : setUrlsToScan) {
                 threadPool.add(this.createSiteScrubberThread(urlToScan));
-                Thread.sleep(2000);
+                Thread.sleep(500);
             }
 
             ForkJoinTask.invokeAll(threadPool);
 
-        } catch (Throwable e) {
-            this.setErrorAndFailedStateToSite(e);
+        } catch (CancellationException ignore) {
+        } catch (Exception e) {
+          this.setErrorAndFailedStateToSite(e);
         }
     }
 

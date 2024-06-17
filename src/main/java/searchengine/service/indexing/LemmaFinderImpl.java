@@ -113,7 +113,7 @@ public class LemmaFinderImpl implements LemmaFinder {
         }
 
         List<String> baseWordFormsList = luceneMorphology.getMorphInfo(word);
-        return isWordParticle(baseWordFormsList);
+        return this.isWordParticle(baseWordFormsList);
     }
 
     private boolean isParticle(String word) {
@@ -121,9 +121,11 @@ public class LemmaFinderImpl implements LemmaFinder {
 
         for (String i : particlesNames) {
             if (base.contains(i)) {
+
                 return true;
             }
         }
+
         return false;
     }
 

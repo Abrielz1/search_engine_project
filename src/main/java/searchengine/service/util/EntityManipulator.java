@@ -73,12 +73,10 @@ public class EntityManipulator {
                     site,
                     path);
 
-            if (page.getCode() < 220) {
                 this.savePageInBd(page);
-            }
         }
 
-        if (page.getCode() < 220) {
+        if (page.getCode() < 400) {
             this.proceedLemmasAndIndexes(page);
         }
     }
@@ -213,7 +211,7 @@ public class EntityManipulator {
     }
 
     private synchronized void lemmasAndRanksManipulatorAndSaver(Map<String,
-            Integer> lemmasWithRanks,
+                                                                Integer> lemmasWithRanks,
                                                                 Page page) {
         Set<Lemma> lemmas = ConcurrentHashMap.newKeySet();
         Set<Index> indices = ConcurrentHashMap.newKeySet();
