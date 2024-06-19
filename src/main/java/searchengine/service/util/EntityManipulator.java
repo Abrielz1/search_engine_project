@@ -10,6 +10,7 @@ import org.jsoup.safety.Safelist;
 import org.springframework.stereotype.Service;
 import searchengine.config.SiteConfig;
 import searchengine.config.SitesList;
+import searchengine.exception.exceptions.ObjectNotFoundException;
 import searchengine.model.Index;
 import searchengine.model.Lemma;
 import searchengine.model.Page;
@@ -198,12 +199,13 @@ public class EntityManipulator {
                                                page);
     }
 
-    public Optional<Site> findSiteByUrl(String url) {
+    public Site findSiteByUrl(String url) {
 
         return siteRepository.findAll()
                 .stream()
                 .filter(s -> s.getUrl().equals(url))
-                .findFirst();
+                .findFirst().orElseThrow(() -> new ObjectNotFoundException("Сайта нет в списке для обхода" +
+                        " по указанному url!"));
     }
 
     public void setFailedStateSite(String message) {

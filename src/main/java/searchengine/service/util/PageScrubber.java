@@ -6,13 +6,17 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.springframework.stereotype.Service;
 import searchengine.model.Site;
+import searchengine.repository.SiteRepository;
+
 import java.io.IOException;
+import java.util.List;
 import java.util.Optional;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class PageScrubber {
+    private final SiteRepository siteRepository;
 
     private final EntityManipulator manipulator;
 
@@ -24,15 +28,27 @@ public class PageScrubber {
             String tempUrl = url;
             tempUrl = url.endsWith("/") ? manipulator.removeLastDash(url) : tempUrl;
 
-            Optional<Site> siteFromDb = manipulator.findSiteByUrl(tempUrl);
-            siteFromDb.ifPresent(site -> manipulator.checkSiteAndSavePageToDb(
-                    document,
-                    site,
-                    url.replace(site.getUrl(), "")));
+            Site siteFromDb = manipulator.findSiteByUrl(tempUrl);
+            if (siteFromDb != null) {
+                manipulator.checkSiteAndSavePageToDb(document, siteFromDb,
+                        url.replace(siteFromDb.getUrl(), ""));
+
+                log.info("сайт по url {} просканирован", url);
+            }
 
         } catch (IOException ex) {
             String message = "Страницу по адресу: %s проиндексировать не удалось".formatted(url);
             manipulator.setFailedStateSite(message);
         }
+    }
+
+    private Site findSiteByPageURL(String url) {
+        List<Site> siteList = siteRepository.findAll();
+        for (Site site : siteList) {
+            if (url.startsWith(site.getUrl())) {
+                return site;
+            }
+        }
+        return null;
     }
 }
