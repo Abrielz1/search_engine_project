@@ -204,8 +204,9 @@ public class EntityManipulator {
         return siteRepository.findAll()
                 .stream()
                 .filter(s -> s.getUrl().equals(url))
-                .findFirst().orElseThrow(() -> new ObjectNotFoundException("Сайта нет в списке для обхода" +
-                        " по указанному url!"));
+                .findFirst()
+                            .orElseThrow(() -> new ObjectNotFoundException("Сайта нет в списке для обхода" +
+                                                                                        " по указанному url!"));
     }
 
     public void setFailedStateSite(String message) {
