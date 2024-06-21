@@ -9,6 +9,7 @@ import org.jsoup.nodes.Document;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import searchengine.config.JsoupSettings;
+import searchengine.config.SiteConfig;
 import searchengine.config.SitesList;
 import searchengine.dto.indexing.IndexingPagingResponseDTO;
 import searchengine.dto.indexing.IndexingStaringResponseDTO;
@@ -117,6 +118,7 @@ public class IndexingServiceImpl implements IndexingService {
         response.setError("Данная страница находится за пределами сайтов, " +
                 "указанных в конфигурационном файле");
 
+        log.info("Indexing of page: %s failed".formatted(url));
         return response;
     }
 
@@ -132,26 +134,35 @@ public class IndexingServiceImpl implements IndexingService {
            siteToSave.setName(path);
            siteToSave.setStatusTime(LocalDateTime.now());
 
+           log.info("site was added to database");
            siteRepository.saveAndFlush(siteToSave);
+
+          List<SiteConfig> list = sitesList.getSites();
+           SiteConfig siteConfig = new SiteConfig();
+           siteConfig.setName(path);
+           siteConfig.setUrl(url);
+          list.add(siteConfig);
+          sitesList.setSites(list);
+
+          log.info("site was added to list sites to index");
        }
     }
 
     public void siteScrubber(String url) {
 
         try {
-
             Document document = Jsoup.connect(url).get();
             String tempUrl = url;
             tempUrl = url.endsWith("/") ? manipulator.removeLastDash(url) : tempUrl;
 
             Site siteFromDb = manipulator.findSiteByUrl(tempUrl);
+
             if (siteFromDb != null) {
                 manipulator.checkSiteAndSavePageToDb(document, siteFromDb,
                         url.replace(siteFromDb.getUrl(), ""));
 
                 log.info("сайт по url {} просканирован", url);
             }
-
         } catch (IOException ex) {
             String message = "Страницу по адресу: %s проиндексировать не удалось".formatted(url);
             this.setFailedStateSite(message);
@@ -181,6 +192,7 @@ public class IndexingServiceImpl implements IndexingService {
                 log.info("Job is done! Sites is indexed at time: " + LocalDateTime.now());
             }));
         }
+
         threads.forEach(Thread::start);
     }
 
@@ -191,6 +203,7 @@ public class IndexingServiceImpl implements IndexingService {
         }
 
         Optional<Site> siteFromDB = siteRepository.findFirstByUrl(site.getUrl());
+
         if (siteFromDB.isPresent() && !siteFromDB.get().getStatus().equals(FAILED)) {
             siteFromDB.get().setStatus(INDEXED);
             siteFromDB.get().setStatusTime(LocalDateTime.now());
@@ -222,7 +235,9 @@ public class IndexingServiceImpl implements IndexingService {
     }
 
     public void setFailedStateSite(String message) {
+
         List<Site> sites = siteRepository.findAll();
+
         try {
             if (pool.awaitTermination(3_000,
                     TimeUnit.MILLISECONDS)) {
@@ -240,6 +255,8 @@ public class IndexingServiceImpl implements IndexingService {
                 site.setLastError(message);
                 siteRepository.saveAllAndFlush(sites);
             });
+
+        log.info("site index state failed try to relaunch indexing");
         SiteScrubber.isStopped = false;
     }
 }
