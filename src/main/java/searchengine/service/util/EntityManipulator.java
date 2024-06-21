@@ -88,7 +88,8 @@ public class EntityManipulator {
                            Site site,
                            String path) {
 
-        return pageRepository.findFirstByPathAndSite(this.urlVerification(path, site),
+        return pageRepository.findFirstByPathAndSite(this.urlVerification(path,
+                                                                          site),
                                                                           site)
                 .orElseGet(() -> this.createPage(document, site, path));
     }
