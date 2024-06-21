@@ -4,6 +4,8 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import searchengine.config.JsoupSettings;
@@ -17,7 +19,6 @@ import searchengine.repository.LemmaRepository;
 import searchengine.repository.PageRepository;
 import searchengine.repository.SiteRepository;
 import searchengine.service.util.EntityManipulator;
-import searchengine.service.util.PageScrubber;
 import searchengine.service.util.SiteScrubber;
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -25,8 +26,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.TimeUnit;
 import static searchengine.model.enums.SiteStatus.FAILED;
 import static searchengine.model.enums.SiteStatus.INDEXED;
+import static searchengine.model.enums.SiteStatus.INDEXING;
 
 @Slf4j
 @Getter
@@ -50,8 +53,6 @@ public class IndexingServiceImpl implements IndexingService {
     private final IndexRepository indexRepository;
 
     private final LemmaRepository lemmaRepository;
-
-    private final PageScrubber pageScrubber;
 
     private final EntityManipulator manipulator;
 
@@ -104,19 +105,57 @@ public class IndexingServiceImpl implements IndexingService {
 
         try {
             if (manipulator.urlChecker(url)) {
+                this.checkSite(url);
                 response.setResult(true);
-                new Thread(() -> pageScrubber.siteScrubber(url)).start();
-
+                new Thread(() -> this.siteScrubber(url)).start();
                 log.info("Indexing of page: %s".formatted(url));
                 return response;
             }
         } catch (IOException exception) {
             exception.printStackTrace();
-            response.setError("Данная страница находится за пределами сайтов, " +
-                    "указанных в конфигурационном файле");
         }
+        response.setError("Данная страница находится за пределами сайтов, " +
+                "указанных в конфигурационном файле");
 
         return response;
+    }
+
+    private void checkSite(String url) {
+        int indexOfRu = url.indexOf(".ru") + 3;
+        String path = url.substring(0, indexOfRu);
+       Site site = siteRepository.getSiteByUrl(path).orElse(null);
+
+       if (site == null) {
+          Site siteToSave = new Site();
+           siteToSave.setStatus(INDEXING);
+           siteToSave.setUrl(url);
+           siteToSave.setName(path);
+           siteToSave.setStatusTime(LocalDateTime.now());
+
+           siteRepository.saveAndFlush(siteToSave);
+       }
+    }
+
+    public void siteScrubber(String url) {
+
+        try {
+
+            Document document = Jsoup.connect(url).get();
+            String tempUrl = url;
+            tempUrl = url.endsWith("/") ? manipulator.removeLastDash(url) : tempUrl;
+
+            Site siteFromDb = manipulator.findSiteByUrl(tempUrl);
+            if (siteFromDb != null) {
+                manipulator.checkSiteAndSavePageToDb(document, siteFromDb,
+                        url.replace(siteFromDb.getUrl(), ""));
+
+                log.info("сайт по url {} просканирован", url);
+            }
+
+        } catch (IOException ex) {
+            String message = "Страницу по адресу: %s проиндексировать не удалось".formatted(url);
+            this.setFailedStateSite(message);
+        }
     }
 
     private void beginIndexingSites() {
@@ -178,8 +217,24 @@ public class IndexingServiceImpl implements IndexingService {
 
         SiteScrubber.isStopped = true;
         pool.shutdown();
-        manipulator.setFailedStateSite("Индексация остановлена пользователем");
+        this.setFailedStateSite("Индексация остановлена пользователем");
         log.info("Индексация остановлена!");
+    }
+
+    public void setFailedStateSite(String message) {
+        List<Site> sites = siteRepository.findAll();
+        try {
+            if (pool.awaitTermination(3_000,
+                    TimeUnit.MILLISECONDS)) {
+                sites.forEach(site -> {
+                    site.setStatus(FAILED);
+                    site.setLastError(message);
+                    siteRepository.saveAllAndFlush(sites);
+                });
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 }
 

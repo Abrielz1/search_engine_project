@@ -10,7 +10,6 @@ import org.jsoup.safety.Safelist;
 import org.springframework.stereotype.Service;
 import searchengine.config.SiteConfig;
 import searchengine.config.SitesList;
-import searchengine.exception.exceptions.ObjectNotFoundException;
 import searchengine.model.Index;
 import searchengine.model.Lemma;
 import searchengine.model.Page;
@@ -29,9 +28,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.TimeUnit;
 import static searchengine.model.enums.SiteStatus.INDEXING;
-import static searchengine.model.enums.SiteStatus.FAILED;
 
 @Slf4j
 @Getter
@@ -139,9 +136,9 @@ public class EntityManipulator {
             return false;
         }
 
-        for (SiteConfig site : sitesList.getSites()) {
+        for (SiteConfig site
+                : sitesList.getSites()) {
             if (url.startsWith(site.getUrl())) {
-
                 return true;
             }
         }
@@ -205,26 +202,7 @@ public class EntityManipulator {
                 .stream()
                 .filter(s -> s.getUrl().equals(url))
                 .findFirst()
-                            .orElseThrow(() -> new ObjectNotFoundException("Сайта нет в списке для обхода" +
-                                                                                        " по указанному url!"));
-    }
-
-    public void setFailedStateSite(String message) {
-
-        List<Site> sites = siteRepository.findAll();
-
-        try {
-            if (pool.awaitTermination(3000,
-                    TimeUnit.MILLISECONDS)) {
-                sites.forEach(site -> {
-                    site.setStatus(FAILED);
-                    site.setLastError(message);
-                    siteRepository.saveAllAndFlush(sites);
-                });
-            }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+                .orElse(null);
     }
 
     private synchronized void lemmasAndRanksManipulatorAndSaver(Map<String,
