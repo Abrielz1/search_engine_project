@@ -240,7 +240,7 @@ public class IndexingServiceImpl implements IndexingService {
                 site.setLastError(message);
                 siteRepository.saveAllAndFlush(sites);
             });
-
+        SiteScrubber.isStopped = false;
     }
 }
 
