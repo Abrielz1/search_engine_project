@@ -81,7 +81,7 @@ public class SnippetManipulator {
                 .substring(0, SNIPPET_LENGTH);
 
         int tagsCounter = StringUtils.countOccurrencesOf(resultText,
-                START_TAG);
+                                                         START_TAG);
 
         for (int i = tagsCounter; i >= 1; i--) {
             int end = text.indexOf(" ", SNIPPET_LENGTH + i * (START_TAG.length() + END_TAG.length()));
