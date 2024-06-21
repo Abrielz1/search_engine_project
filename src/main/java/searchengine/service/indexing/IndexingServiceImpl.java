@@ -121,8 +121,8 @@ public class IndexingServiceImpl implements IndexingService {
     }
 
     private void checkSite(String url) {
-        int indexOfRu = url.indexOf(".ru") + 3;
-        String path = url.substring(0, indexOfRu);
+
+       String path = url.substring(0, url.indexOf(".ru") + 3);
        Site site = siteRepository.getSiteByUrl(path).orElse(null);
 
        if (site == null) {
