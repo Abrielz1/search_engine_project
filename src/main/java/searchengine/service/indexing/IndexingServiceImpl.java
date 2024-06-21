@@ -235,6 +235,12 @@ public class IndexingServiceImpl implements IndexingService {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+            sites.forEach(site -> {
+                site.setStatus(FAILED);
+                site.setLastError(message);
+                siteRepository.saveAllAndFlush(sites);
+            });
+
     }
 }
 
