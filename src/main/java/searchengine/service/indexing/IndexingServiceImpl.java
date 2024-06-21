@@ -225,6 +225,7 @@ public class IndexingServiceImpl implements IndexingService {
     private void stopIndexingSites() {
 
         if (!isIndexing()) {
+            log.info("indexing is not launched");
             return;
         }
 
