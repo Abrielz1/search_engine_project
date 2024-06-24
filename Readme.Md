@@ -7,7 +7,7 @@
 The first tab of _Dashboard_ is showed are state of the _**websites** that are **indexed**_ or
 it were be indexed in the future.
 ##### 
-![1 tab](https://github.com/Abrielz1/search_engine_project/blob/213195246-bf3a674b-e689-44ee-a76d-af639731bdbf.png)
+![1 tab](https://github.com/Abrielz1/search_engine_project/blob/master/1.png?raw=true)
 ##### 
 #### 2. The states of Indexing:
 
@@ -19,7 +19,7 @@ it were be indexed in the future.
 ### 2. The Management
 The second tab of _Dashboard_ contains are:
 #####
-![2 tab](https://github.com/Abrielz1/search_engine_project/blob/213194350-613be967-5210-4606-b0c5-8055f0eea534.png)
+![2 tab](https://github.com/Abrielz1/search_engine_project/blob/master/2.png?raw=true)
 #####
 The button ***"Start indexing"*** clears all the previous data and _starts the indexation process all over again_.
 Also particular pages of the given websites can be _indexed or updated separately below the button_.
@@ -29,7 +29,7 @@ The last tab contains The Search.
 Here is the search bar wich can search through given sites.
 You can choose the site you want to get pages from in the drop-down list above.
 #####
-![3 tab](https://github.com/Abrielz1/search_engine_project/blob/213194688-a84d9bbe-9f6a-42cb-bb1e-99405c080ce9.png)
+![3 tab](https://github.com/Abrielz1/search_engine_project/blob/master/3.png?raw=true)
 ####
 ## The Technologies
 #### The technologies used in the project are the following:
@@ -60,7 +60,7 @@ You can choose the site you want to get pages from in the drop-down list above.
 - `[GET] /api/search` - The method returns statistics and other service information about the status of the search indexes and the engine itself.
 
 ## DataBase scema:
-![schema1](https://github.com/Abrielz1/search_engine_project/blob/search_engine_db_scema.png)
+![schema1](https://github.com/Abrielz1/search_engine_project/blob/master/search_engine_db_scema.png?raw=true)
 
 ## How to run Application
 
