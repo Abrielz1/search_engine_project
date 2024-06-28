@@ -21,7 +21,7 @@ public interface LemmaRepository extends JpaRepository<Lemma, Long> {
                    SELECT *
                    FROM lemma
                    WHERE lemma IN :lemmasSet
-                   ORDER BY frequency
+                   ORDER BY frequency ASC
                    """, nativeQuery = true)
     Vector<Lemma> findByLemma(@Param("lemmasSet") Set<String> lemmasSet);
 }

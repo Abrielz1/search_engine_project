@@ -98,8 +98,8 @@ public class SearchingServiceImpl implements SearchingService {
 
     private SearchResponseDTO searchResponse(List<Lemma> sortedLemmas,
                                              String site,
-                                             Integer from, //offset
-                                             Integer size) { //limit
+                                             Integer from,
+                                             Integer size) {
 
         SearchResponseDTO response = new SearchResponseDTO();
         Set<Page> setPagesInDb = this.checkPageInDb(sortedLemmas,
@@ -113,9 +113,10 @@ public class SearchingServiceImpl implements SearchingService {
         List<PageDataDTO> responseDataDtoList = this.createResponseDataDtoList(sortedLemmas,
                                                                                setPagesInDb);
 
+
         response.setCount(responseDataDtoList.size());
         response.setResult(true);
-        response.setError(null);
+        response.setError("");
         response.setData(this.getListOfData(responseDataDtoList,
                                             sortedLemmas.size(),
                                             from,
@@ -153,6 +154,11 @@ public class SearchingServiceImpl implements SearchingService {
             PageDataDTO newData = this.collectData(page,
                                                    pageContent,
                                                    lemmaList);
+
+            if (setPagesInDb.size() < 500) {
+                newData.setRelevance(this.getRelevance(page));
+            }
+
             resultList.add(newData);
         }
 
@@ -197,7 +203,7 @@ public class SearchingServiceImpl implements SearchingService {
 
         return lemmaList.stream()
                 .filter(frequency ->
-                        frequency.getFrequency() < 500) //< 250
+                        frequency.getFrequency() < 5000) //< 250
                 .collect(Collectors.toList());
     }
 
@@ -211,9 +217,13 @@ public class SearchingServiceImpl implements SearchingService {
         pageDataDTO.setUri(page.getPath());
         pageDataDTO.setSiteName(page.getSite().getName());
         pageDataDTO.setTitle(this.findTitle(content));
-        pageDataDTO.setRelevance(this.getRelevance(page));
         pageDataDTO.setSnippet(snippetManipulator.createSnippet(this.pageProceed(content),
-                                                                sortedLemmas));
+                                                                sortedLemmas) + (" ..."));
+        pageDataDTO.setRelevance(0.0f); //this.getRelevance(page)
+
+        if (pageDataDTO.getSnippet().startsWith(" ...")) {
+            pageDataDTO.setSnippet(pageDataDTO.getTitle() + (" ..."));
+        }
 
         return pageDataDTO;
     }

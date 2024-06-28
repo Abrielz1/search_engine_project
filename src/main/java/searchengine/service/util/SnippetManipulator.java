@@ -40,7 +40,7 @@ public class SnippetManipulator {
             resultText.append(word).append(" ");
         }
 
-        return this.snippedFinalizer(resultText.toString().concat(" ..."));
+        return this.snippedFinalizer(resultText.toString());
     }
 
     private String checkWord(String word,
@@ -71,20 +71,33 @@ public class SnippetManipulator {
 
     private String snippedFinalizer(String resultText) {
 
-        String snippet = "";
-        Integer startIndex = this.startIndexOfTextFinder(resultText);
+        int startIndex = this.startIndexOfTextFinder(resultText);
 
         String text = resultText.substring(startIndex,
                 resultText.length() - 1);
 
-        String rawText = text.replace("</?b>", "")
-                .substring(0, SNIPPET_LENGTH);
+        String rawText;
+
+        rawText = text.replace("</?b>", "");
+        int len = rawText.length() - 1;
+        if (startIndex < SNIPPET_LENGTH) {
+            rawText = text.substring(startIndex, SNIPPET_LENGTH);
+        } else {
+            rawText = rawText.substring(0, Math.min(len, SNIPPET_LENGTH));
+        }
+
+        String snippet = "";
 
         int tagsCounter = StringUtils.countOccurrencesOf(resultText,
                                                          START_TAG);
 
         for (int i = tagsCounter; i >= 1; i--) {
             int end = text.indexOf(" ", SNIPPET_LENGTH + i * (START_TAG.length() + END_TAG.length()));
+
+            if (text.length() <= 1 || end <= 1) {
+                break;
+            }
+
             snippet = text.substring(0, end);
 
             if (snippet.replaceAll("</?b>", "").length() < rawText.length()) {
