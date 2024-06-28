@@ -8,7 +8,6 @@ import org.springframework.util.StringUtils;
 import searchengine.model.Lemma;
 import searchengine.repository.LemmaRepository;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -148,7 +147,7 @@ public class LemmaFinderImpl implements LemmaFinder {
         List<Lemma> lemmaList = lemmaRepository.findByLemma(lemmasSet);
 
         if (lemmaList.size() < lemmasSet.size()) {
-            return new ArrayList<>();
+            return null;
         }
 
         return lemmaList;

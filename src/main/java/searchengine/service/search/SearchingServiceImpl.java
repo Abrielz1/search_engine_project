@@ -66,11 +66,13 @@ public class SearchingServiceImpl implements SearchingService {
         if (lemmasSet.isEmpty()) {
             newSearchResponseDTO.setResult(false);
             newSearchResponseDTO.setError("Задан пустой поисковый запрос");
+            return newSearchResponseDTO;
         }
 
-        if (lemmaList.size() == 0) {
+        if (lemmaList == null) {
             newSearchResponseDTO.setResult(false);
             newSearchResponseDTO.setError("Страниц, удовлетворяющих запрос, нет!");
+            return newSearchResponseDTO;
         }
 
         return this.searchResponse(lemmaList,
@@ -96,8 +98,8 @@ public class SearchingServiceImpl implements SearchingService {
 
     private SearchResponseDTO searchResponse(List<Lemma> sortedLemmas,
                                              String site,
-                                             Integer from,
-                                             Integer size) {
+                                             Integer from, //offset
+                                             Integer size) { //limit
 
         SearchResponseDTO response = new SearchResponseDTO();
         Set<Page> setPagesInDb = this.checkPageInDb(sortedLemmas,
@@ -195,7 +197,7 @@ public class SearchingServiceImpl implements SearchingService {
 
         return lemmaList.stream()
                 .filter(frequency ->
-                        frequency.getFrequency() < 250)
+                        frequency.getFrequency() < 500) //< 250
                 .collect(Collectors.toList());
     }
 
