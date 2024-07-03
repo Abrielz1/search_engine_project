@@ -15,7 +15,7 @@ public class PageDataDTO implements Comparable<PageDataDTO> {
 
     private String snippet;
 
-    private Float relevance;
+    private float relevance;
 
     @Override
     public int compareTo(PageDataDTO o) {

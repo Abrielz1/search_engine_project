@@ -26,7 +26,7 @@ public class SnippetManipulator {
     public String createSnippet(String pageText,
                                 List<Lemma> sortedLemmas) {
 
-        String[] textArray = pageText.split("\\s+");
+        String[] textArray = pageText.split(" ");
         StringBuilder resultText = new StringBuilder();
         Map<String, Set<String>> mapOfLemmasAndForms = lemmaFinder.collectLemmasAndWords(pageText);
 

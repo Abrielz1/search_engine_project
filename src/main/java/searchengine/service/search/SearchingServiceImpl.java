@@ -54,8 +54,9 @@ public class SearchingServiceImpl implements SearchingService {
 
         SearchResponseDTO newSearchResponseDTO = new SearchResponseDTO();
 
-        Set<String> lemmasSet = lemmaFinder.getLemmaSet(query);
-        List<Lemma> lemmaList = this.findListOfLemmasInDbAversSorted(lemmasSet);
+        Set<String> lemmasSet = lemmaFinder.getLemmaSet(query.replaceAll("[Ёё]", "е"));
+
+        List<Lemma> lemmaList = lemmaFinder.getSortedLemmasSetFromDbAversSorted(lemmasSet);
 
         if (site != null && !this.siteChecker(site)) {
             newSearchResponseDTO.setResult(false);
@@ -91,11 +92,6 @@ public class SearchingServiceImpl implements SearchingService {
                 .equals(site));
     }
 
-    private List<Lemma> findListOfLemmasInDbAversSorted(Set<String> lemmasSet) {
-
-        return lemmaFinder.getSortedLemmasSetFromDbAversSorted(lemmasSet);
-    }
-
     private SearchResponseDTO searchResponse(List<Lemma> sortedLemmas,
                                              String site,
                                              Integer from,
@@ -117,11 +113,8 @@ public class SearchingServiceImpl implements SearchingService {
         response.setCount(responseDataDtoList.size());
         response.setResult(true);
         response.setError("");
-        response.setData(this.getListOfData(responseDataDtoList,
-                                            sortedLemmas.size(),
-                                            from,
-                                            size));
-
+        response.setData(responseDataDtoList.subList(from,
+                Math.min(size + from, responseDataDtoList.size())));
         return response;
     }
 
@@ -155,34 +148,12 @@ public class SearchingServiceImpl implements SearchingService {
                                                    pageContent,
                                                    lemmaList);
 
-            if (setPagesInDb.size() < 500) {
-                newData.setRelevance(this.getRelevance(page));
-            }
-
             resultList.add(newData);
         }
 
         resultList.sort(Collections.reverseOrder());
 
         return resultList;
-    }
-
-    private List<PageDataDTO> getListOfData(List<PageDataDTO> responceDataDtoList,
-                                            Integer lemmaListSize,
-                                            Integer from,
-                                            Integer size) {
-
-        if (from >= lemmaListSize || from >= responceDataDtoList.size() - 1) {
-            from = 0;
-        }
-
-        if (lemmaListSize > responceDataDtoList.size()) {
-            lemmaListSize = responceDataDtoList.size();
-        }
-
-        return responceDataDtoList.subList(from,
-                Math.min(from + size,
-                         lemmaListSize));
     }
 
     private List<Site> findSitesListInDb(String site) {
@@ -203,7 +174,7 @@ public class SearchingServiceImpl implements SearchingService {
 
         return lemmaList.stream()
                 .filter(frequency ->
-                        frequency.getFrequency() < 5000) //< 250
+                        frequency.getFrequency() < 4500) //< 250
                 .collect(Collectors.toList());
     }
 
@@ -217,13 +188,12 @@ public class SearchingServiceImpl implements SearchingService {
         pageDataDTO.setUri(page.getPath());
         pageDataDTO.setSiteName(page.getSite().getName());
         pageDataDTO.setTitle(this.findTitle(content));
-        pageDataDTO.setSnippet(snippetManipulator.createSnippet(this.pageProceed(content),
-                                                                sortedLemmas) + (" ..."));
-        pageDataDTO.setRelevance(0.0f); //this.getRelevance(page)
 
-        if (pageDataDTO.getSnippet().startsWith(" ...")) {
-            pageDataDTO.setSnippet(pageDataDTO.getTitle() + (" ..."));
-        }
+        //pageDataDTO.setRelevance(this.getRelevance(page));
+
+        String text = this.pageProceed(content);
+        pageDataDTO.setSnippet(snippetManipulator
+                .createSnippet(text, sortedLemmas)+ (" ..."));
 
         return pageDataDTO;
     }
@@ -240,7 +210,7 @@ public class SearchingServiceImpl implements SearchingService {
 
     private String findTitle(String content) {
 
-        if (content.contains("<title>") && content.contains("</title>")) {
+        if (content.contains("<title>")) {
 
             return content.substring(content.indexOf("<title>") + "<title>".length(),
                     content.indexOf("</title>"));
