@@ -1,4 +1,4 @@
-package searchengine.service.stitstic;
+package searchengine.service.statstic;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

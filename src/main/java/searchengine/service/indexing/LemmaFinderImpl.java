@@ -63,9 +63,14 @@ public class LemmaFinderImpl implements LemmaFinder {
         Set<String> lemmasSet = new HashSet<>();
 
         for (String word: this.stringManipulator(text)) {
+
+            if (isWrongWord(word)) {
+                continue;
+            }
+
             List<String> normalWordForms = luceneMorphology.getNormalForms(word);
 
-            if (isWrongWord(word) && normalWordForms.isEmpty()) {
+            if(normalWordForms.isEmpty()){
                 continue;
             }
 
@@ -82,9 +87,13 @@ public class LemmaFinderImpl implements LemmaFinder {
 
         for (String word : this.stringManipulator(text)) {
 
+            if (isWrongWord(word)) {
+                continue;
+            }
+
             List<String> normalWordForms = luceneMorphology.getNormalForms(word);
 
-            if (isWrongWord(word) && normalWordForms.isEmpty()) {
+            if(normalWordForms.isEmpty()){
                 continue;
             }
 

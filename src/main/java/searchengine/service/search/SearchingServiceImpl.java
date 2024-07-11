@@ -174,7 +174,7 @@ public class SearchingServiceImpl implements SearchingService {
 
         return lemmaList.stream()
                 .filter(frequency ->
-                        frequency.getFrequency() < 4500) //< 250
+                        frequency.getFrequency() < 8500) //< 250
                 .collect(Collectors.toList());
     }
 
@@ -189,7 +189,7 @@ public class SearchingServiceImpl implements SearchingService {
         pageDataDTO.setSiteName(page.getSite().getName());
         pageDataDTO.setTitle(this.findTitle(content));
 
-        //pageDataDTO.setRelevance(this.getRelevance(page));
+      //  pageDataDTO.setRelevance(this.getRelevance(page));
 
         String text = this.pageProceed(content);
         pageDataDTO.setSnippet(snippetManipulator

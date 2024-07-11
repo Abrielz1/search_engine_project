@@ -17,7 +17,7 @@ import searchengine.dto.page.SearchResponseDTO;
 import searchengine.dto.statistics.StatisticsResponse;
 import searchengine.service.indexing.IndexingService;
 import searchengine.service.search.SearchingService;
-import searchengine.service.stitstic.StatisticsService;
+import searchengine.service.statstic.StatisticsService;
 import javax.validation.constraints.NotBlank;
 import java.time.LocalDateTime;
 
