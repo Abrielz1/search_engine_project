@@ -148,16 +148,14 @@ public class SearchingServiceImpl implements SearchingService {
                                                    pageContent,
                                                    lemmaList);
 
-            if (newData.getSnippet() == null) {
-                continue;
-            }
-
             resultList.add(newData);
         }
 
+
+
         resultList.sort(Collections.reverseOrder());
 
-        return resultList;
+        return resultList.stream().filter(t -> !t.getSnippet().contains("null ...")).collect(Collectors.toList());
     }
 
     private List<Site> findSitesListInDb(String site) {
