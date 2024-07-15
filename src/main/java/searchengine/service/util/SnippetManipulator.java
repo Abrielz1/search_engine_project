@@ -25,7 +25,7 @@ public class SnippetManipulator {
 
     public String createSnippet(String pageText,
                                 List<Lemma> sortedLemmas) {
-
+        String threeDots = " ...";
         String[] textArray = pageText.split(" ");
         StringBuilder resultText = new StringBuilder();
         Map<String, Set<String>> mapOfLemmasAndForms = lemmaFinder.collectLemmasAndWords(pageText);
@@ -40,36 +40,64 @@ public class SnippetManipulator {
             resultText.append(word).append(" ");
         }
 
+        if (!resultText.toString().contains("<b>") && !resultText.toString().contains("<b>")) {
+            return null;
+        }
+
         return this.snippedFinalizer(resultText.toString());
     }
 
-    private String checkWord(String word,
-                             String lemma,
-                             Map<String, Set<String>> mapOfLemmasAndForms) {
+//    private String checkWord(String word,
+//                             String lemma,
+//                             Map<String, Set<String>> mapOfLemmasAndForms) {
 
-        String[] splitWord = word.split("\\s+");
+//        String[] splitWord = word.split("\\s+");
+//
+//        for (String proceedWord : splitWord) {
+//
+//            if (mapOfLemmasAndForms.get(lemma) == null) {
+//                return word;
+//            }
+//
+//            if (mapOfLemmasAndForms.get(lemma).stream()
+//                    .anyMatch(proceedWord
+//                            .replaceAll("Ё", "е")
+//                            .replaceAll("Ё", "е")
+//                            ::equalsIgnoreCase)) {
+//
+//                word = word.replace(proceedWord,
+//                        START_TAG.concat(proceedWord).concat(END_TAG));
+//            }
+//        }
+//
+//        return word;
+//    }
 
-        for (String proceedWord : splitWord) {
-
-            if (mapOfLemmasAndForms.get(lemma) == null) {
+    private String checkWord(String word, String lemma,
+                                         Map<String, Set<String>> lemmasAndWords) {
+        String[] formattedWord = word
+                .replaceAll("([^А-Яа-яЁё\\-])", " ")
+                .trim().split("[- ]");
+        for (String part : formattedWord) {
+            if (lemmasAndWords.get(lemma) == null) {
                 return word;
             }
-
-            if (mapOfLemmasAndForms.get(lemma).stream()
-                    .anyMatch(proceedWord
-                            .replaceAll("Ё", "е")
-                            .replaceAll("Ё", "е")
-                            ::equalsIgnoreCase)) {
-
-                word = word.replace(proceedWord,
-                        START_TAG.concat(proceedWord).concat(END_TAG));
+            if ((lemmasAndWords.get(lemma).stream().anyMatch(part
+                    .replaceAll("Ё", "Е")
+                    .replaceAll("ё", "е")
+                    ::equalsIgnoreCase))) {
+                word = word.replace(part, START_TAG
+                        .concat(part).concat(END_TAG));
             }
         }
-
         return word;
     }
 
+
     private String snippedFinalizer(String resultText) {
+        if (resultText == null) {
+            return "";
+        }
 
         int startIndex = this.startIndexOfTextFinder(resultText);
 
@@ -110,9 +138,9 @@ public class SnippetManipulator {
 
     private Integer startIndexOfTextFinder(String resultText) {
 
-        if (!resultText.contains(START_TAG)) {
-            return 0;
-        }
+//        if (!resultText.contains(START_TAG)) {
+//            return 0;
+//        }
 
         String[] split = resultText.substring(resultText.indexOf(START_TAG),
                         resultText.indexOf(END_TAG))
