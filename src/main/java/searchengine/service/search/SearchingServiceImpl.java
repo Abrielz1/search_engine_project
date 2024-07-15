@@ -148,6 +148,10 @@ public class SearchingServiceImpl implements SearchingService {
                                                    pageContent,
                                                    lemmaList);
 
+            if (newData.getSnippet() == null) {
+                continue;
+            }
+
             resultList.add(newData);
         }
 
