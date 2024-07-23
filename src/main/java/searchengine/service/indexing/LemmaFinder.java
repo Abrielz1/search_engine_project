@@ -15,4 +15,6 @@ public interface LemmaFinder {
     Map<String, Set<String>> collectLemmasAndWords(String text);
 
     List<Lemma> getSortedLemmasSetFromDbAversSorted(Set<String> lemmasSet);
+
+    String getNormalWordForm(String word);
 }

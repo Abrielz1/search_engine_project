@@ -7,6 +7,7 @@ import org.springframework.util.StringUtils;
 import searchengine.model.Lemma;
 import searchengine.service.indexing.LemmaFinder;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -47,52 +48,49 @@ public class SnippetManipulator {
         return this.snippedFinalizer(resultText.toString());
     }
 
-//    private String checkWord(String word,
-//                             String lemma,
-//                             Map<String, Set<String>> mapOfLemmasAndForms) {
+    private String checkWord(String word,
+                             String lemma,
+                             Map<String, Set<String>> lemmasAndWords) {
 
-//        String[] splitWord = word.split("\\s+");
-//
-//        for (String proceedWord : splitWord) {
-//
-//            if (mapOfLemmasAndForms.get(lemma) == null) {
-//                return word;
-//            }
-//
-//            if (mapOfLemmasAndForms.get(lemma).stream()
-//                    .anyMatch(proceedWord
-//                            .replaceAll("Ё", "е")
-//                            .replaceAll("Ё", "е")
-//                            ::equalsIgnoreCase)) {
-//
-//                word = word.replace(proceedWord,
-//                        START_TAG.concat(proceedWord).concat(END_TAG));
-//            }
-//        }
-//
-//        return word;
-//    }
-
-    private String checkWord(String word, String lemma,
-                                         Map<String, Set<String>> lemmasAndWords) {
         String[] formattedWord = word
                 .replaceAll("([^А-Яа-яЁё\\-])", " ")
                 .trim().split("[- ]");
+
         for (String part : formattedWord) {
+
             if (lemmasAndWords.get(lemma) == null) {
                 return word;
             }
-            if ((lemmasAndWords.get(lemma).stream().anyMatch(part
-                    .replaceAll("Ё", "Е")
+
+            part = part.replaceAll("Ё", "Е")
                     .replaceAll("ё", "е")
+                    .trim()
+                    .toLowerCase(Locale.ROOT);
+
+            if (lemmaFinder.getNormalWordForm(part) != null) {
+                part = lemmaFinder.getNormalWordForm(part);
+            } else {
+                continue;
+            }
+
+            if (part == null) {
+                continue;
+            }
+
+            if ((lemmasAndWords.get(lemma).stream().anyMatch(part
                     ::equalsIgnoreCase))) {
-                word = word.replace(part, START_TAG
-                        .concat(part).concat(END_TAG));
+
+//                word = word.replace(part, START_TAG
+//                        .concat(part).concat(END_TAG));
+
+                String part1 = word.replace(part, START_TAG);
+                String part2 = word.replace(part, END_TAG);
+                word = part1 + part + part2;
             }
         }
+
         return word;
     }
-
 
     private String snippedFinalizer(String resultText) {
         if (resultText == null) {

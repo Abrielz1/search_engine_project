@@ -111,6 +111,36 @@ public class LemmaFinderImpl implements LemmaFinder {
         return mapLemmasAndWords;
     }
 
+    @Override
+    public List<Lemma> getSortedLemmasSetFromDbAversSorted(Set<String> lemmasSet) {
+
+        List<Lemma> lemmaList = lemmaRepository.findByLemma(lemmasSet);
+
+        if (lemmaList.size() < lemmasSet.size()) {
+            return null;
+        }
+
+        return lemmaList;
+    }
+
+    @Override
+    public String getNormalWordForm(String word) {
+
+        if (this.isWrongWord(word)) {
+            return null;
+        }
+
+        List<String> normalWordForms = luceneMorphology
+                .getNormalForms(word);
+
+        if (normalWordForms.isEmpty()) {
+            return null;
+        }
+
+        return luceneMorphology
+                .getNormalForms(word).get(0);
+    }
+
     private String[] stringManipulator(String text) {
 
         return text.toLowerCase(Locale.ROOT)
@@ -148,17 +178,5 @@ public class LemmaFinderImpl implements LemmaFinder {
     private boolean isWordParticle(List<String> baseWordFormsList) {
 
         return baseWordFormsList.stream().anyMatch(this::isParticle);
-    }
-
-    @Override
-    public List<Lemma> getSortedLemmasSetFromDbAversSorted(Set<String> lemmasSet) {
-
-        List<Lemma> lemmaList = lemmaRepository.findByLemma(lemmasSet);
-
-        if (lemmaList.size() < lemmasSet.size()) {
-            return null;
-        }
-
-        return lemmaList;
     }
 }
