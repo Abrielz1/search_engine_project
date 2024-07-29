@@ -151,11 +151,11 @@ public class SearchingServiceImpl implements SearchingService {
             resultList.add(newData);
         }
 
-
-
         resultList.sort(Collections.reverseOrder());
 
-        return resultList.stream().filter(t -> !t.getSnippet().contains("null ...")).collect(Collectors.toList());
+        return resultList.stream()
+                .filter(t -> !t.getSnippet().contains("null ..."))
+                .collect(Collectors.toList());
     }
 
     private List<Site> findSitesListInDb(String site) {
@@ -176,7 +176,7 @@ public class SearchingServiceImpl implements SearchingService {
 
         return lemmaList.stream()
                 .filter(frequency ->
-                        frequency.getFrequency() < 8500) //< 250
+                        frequency.getFrequency() < 8500)
                 .collect(Collectors.toList());
     }
 
