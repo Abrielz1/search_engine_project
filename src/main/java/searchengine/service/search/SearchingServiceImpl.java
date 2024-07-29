@@ -197,6 +197,7 @@ public class SearchingServiceImpl implements SearchingService {
         pageDataDTO.setSnippet(snippetManipulator
                 .createSnippet(text, sortedLemmas) + (" ..."));
 
+
         return pageDataDTO;
     }
 
@@ -218,7 +219,15 @@ public class SearchingServiceImpl implements SearchingService {
                     content.indexOf("</title>"));
         } else {
 
-            return null;
+            int start = content.indexOf("<div class=\"item_big_name\">") + "<div class=\"item_big_name\">".length();
+            int ebd = start + 300;
+
+            String res = content.substring(start,
+                    ebd);
+
+      res = res.substring(res.indexOf("\n") + "\n".length(), res.indexOf("<br>")).trim();
+
+            return res;
         }
     }
 
