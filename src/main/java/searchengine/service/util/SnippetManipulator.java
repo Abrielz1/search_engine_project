@@ -26,7 +26,7 @@ public class SnippetManipulator {
 
     public String createSnippet(String pageText,
                                 List<Lemma> sortedLemmas) {
-        String threeDots = " ...";
+
         String[] textArray = pageText.split(" ");
         StringBuilder resultText = new StringBuilder();
         Map<String, Set<String>> mapOfLemmasAndForms = lemmaFinder.collectLemmasAndWords(pageText);
@@ -80,12 +80,8 @@ public class SnippetManipulator {
             if ((lemmasAndWords.get(lemma).stream().anyMatch(part
                     ::equalsIgnoreCase))) {
 
-//                word = word.replace(part, START_TAG
-//                        .concat(part).concat(END_TAG));
-
-                String part1 = word.replace(part, START_TAG);
-                String part2 = word.replace(part, END_TAG);
-                word = part1 + part + part2;
+                word = word.replace(part, START_TAG
+                        .concat(part).concat(END_TAG));
             }
         }
 

@@ -190,13 +190,13 @@ public class SearchingServiceImpl implements SearchingService {
         pageDataDTO.setUri(page.getPath());
         pageDataDTO.setSiteName(page.getSite().getName());
         pageDataDTO.setTitle(this.findTitle(content));
-
-      //  pageDataDTO.setRelevance(this.getRelevance(page));
-
-        String text = this.pageProceed(content);
+        pageDataDTO.setRelevance(this.getRelevance(page));
         pageDataDTO.setSnippet(snippetManipulator
-                .createSnippet(text, sortedLemmas) + (" ..."));
+                .createSnippet(this.pageProceed(content), sortedLemmas) + (" ..."));
 
+        if (pageDataDTO.getTitle() == null) {
+            pageDataDTO.setTitle(this.setTitle(pageDataDTO.getSnippet()));
+        }
 
         return pageDataDTO;
     }
@@ -219,15 +219,7 @@ public class SearchingServiceImpl implements SearchingService {
                     content.indexOf("</title>"));
         } else {
 
-            int start = content.indexOf("<div class=\"item_big_name\">") + "<div class=\"item_big_name\">".length();
-            int ebd = start + 300;
-
-            String res = content.substring(start,
-                    ebd);
-
-      res = res.substring(res.indexOf("\n") + "\n".length(), res.indexOf("<br>")).trim();
-
-            return res;
+            return null;
         }
     }
 
@@ -238,6 +230,11 @@ public class SearchingServiceImpl implements SearchingService {
                 .replaceAll("<[^>]*>", " ")
                 .replaceAll("https?://[\\w\\W]\\S+", "")
                 .replaceAll("\\s*\\n+\\s*", " · ");
+    }
+
+    private String setTitle(String snippet) {
+
+        return snippet.substring(0, snippet.length() / 3);
     }
 }
 
