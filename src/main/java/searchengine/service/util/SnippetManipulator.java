@@ -103,7 +103,12 @@ public class SnippetManipulator {
         rawText = text.replace("</?b>", "");
         int len = rawText.length() - 1;
         if (startIndex < SNIPPET_LENGTH) {
+            if (startIndex - SNIPPET_LENGTH < 0) {
+                rawText = text.substring(startIndex, startIndex + 1);
+            } else {
             rawText = text.substring(startIndex, SNIPPET_LENGTH);
+
+            }
         } else {
             rawText = rawText.substring(0, Math.min(len, SNIPPET_LENGTH));
         }

@@ -109,12 +109,13 @@ public class SearchingServiceImpl implements SearchingService {
         List<PageDataDTO> responseDataDtoList = this.createResponseDataDtoList(sortedLemmas,
                                                                                setPagesInDb);
 
+        int endIndex = from + size;
 
         response.setCount(responseDataDtoList.size());
         response.setResult(true);
         response.setError("");
         response.setData(responseDataDtoList.subList(from,
-                Math.min(size + from, responseDataDtoList.size())));
+                Math.min(endIndex, responseDataDtoList.size())));
         return response;
     }
 
